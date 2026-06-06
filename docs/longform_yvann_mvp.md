@@ -23,12 +23,13 @@ This feature adds an additive long-form orchestration runner for Yvann "Images t
   - `job_state.json`
   - `manifest/chunk_manifest.json`
 - Splits audio chunk-by-chunk to wav files without loading full audio in memory.
-- Generates chunk images (backend selectable):
+- Generates timestamp scene image folders (backend selectable):
   - `comfy_api` (ComfyUI API text-to-image)
   - `procedural` (fallback deterministic abstract image generator)
-- Generates the configured number of images for each render batch and feeds them into the Yvann workflow `LoadImage` nodes.
+- Generates one varied image every `image_interval_seconds` for each cue/timestamp span.
+- Feeds the whole generated scene folder into Yvann through a standard KJNodes folder image-batch loader (`LoadImagesFromFolderKJ`).
 - Converts Yvann full workflow JSON to API format via `/workflow/convert`.
-- Injects chunk image/audio into `LoadImage` and `LoadAudio` nodes.
+- Injects the generated scene image folder and chunk audio into the Yvann workflow.
 - Scales Yvann render workload per chunk using `yvann_render_fps`, `yvann_min_frames`, and `yvann_max_frames`.
 - Executes per chunk with partial execution target set to selected `VHS_VideoCombine` output node.
 - Saves each chunk video immediately and updates state after every chunk.
@@ -66,7 +67,7 @@ For long mixes, keep the music track list and add visual switch markers in comme
 00:13:25  4 Artist - Later Track                  # C. 00:11:30 Satellite images of Earth and planets
 ```
 
-The timestamp after the cue label controls when that visual batch starts. Continuation comment lines without a timestamp are appended to the previous visual batch prompt. The runner still renders in manageable chunks, but it splits at these visual switch timestamps and auto-generates images for each chunk from the active visual batch prompt.
+The timestamp after the cue label controls when that visual batch starts. Continuation comment lines without a timestamp are appended to the previous visual batch prompt. The runner generates a folder of varied images for each timestamp span, at the configured cadence such as one image every 5 seconds. It still renders in manageable audio/video chunks, but each chunk points Yvann at the full active scene folder through the folder batch loader.
 
 See:
 
@@ -108,7 +109,10 @@ For each run:
   audio_chunks/
     chunk_0001.wav
   images/
-    chunk_0001_img_01.png
+    A/
+      A_0001.png
+      A_0002.png
+      ...
   videos/
     chunk_0001.mp4
   previews/

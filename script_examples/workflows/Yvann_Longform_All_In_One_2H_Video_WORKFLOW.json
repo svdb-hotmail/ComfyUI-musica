@@ -1,8 +1,8 @@
 {
   "id": "yvann-longform-all-in-one-2h-video-workflow",
   "revision": 0,
-  "last_node_id": 731,
-  "last_link_id": 8503,
+  "last_node_id": 732,
+  "last_link_id": 8504,
   "nodes": [
     {
       "id": 56,
@@ -15,9 +15,11 @@
         222.798828125,
         506.9791666666667
       ],
-      "flags": {},
+      "flags": {
+        "collapsed": true
+      },
       "order": 0,
-      "mode": 0,
+      "mode": 2,
       "inputs": [],
       "outputs": [
         {
@@ -186,9 +188,11 @@
         240.06510416666669,
         476.328125
       ],
-      "flags": {},
+      "flags": {
+        "collapsed": true
+      },
       "order": 1,
-      "mode": 0,
+      "mode": 2,
       "inputs": [],
       "outputs": [
         {
@@ -220,61 +224,62 @@
     },
     {
       "id": 376,
-      "type": "ImageBatchMulti",
+      "type": "LoadImagesFromFolderKJ",
       "pos": [
         22.35878155539202,
         1864.60957581927
       ],
       "size": [
-        250.57291666666669,
-        232.5
+        360,
+        190
       ],
       "flags": {},
       "order": 11,
       "mode": 0,
-      "inputs": [
-        {
-          "name": "image_1",
-          "type": "IMAGE",
-          "link": 899
-        },
-        {
-          "name": "image_2",
-          "shape": 7,
-          "type": "IMAGE",
-          "link": 900
-        },
-        {
-          "name": "image_3",
-          "type": "IMAGE",
-          "link": 904
-        },
-        {
-          "name": "image_4",
-          "type": "IMAGE",
-          "link": 903
-        }
-      ],
+      "inputs": [],
       "outputs": [
         {
-          "name": "images",
+          "name": "image",
           "type": "IMAGE",
           "slot_index": 0,
           "links": [
             1579
           ]
+        },
+        {
+          "name": "mask",
+          "type": "MASK",
+          "slot_index": 1,
+          "links": null
+        },
+        {
+          "name": "count",
+          "type": "INT",
+          "slot_index": 2,
+          "links": null
+        },
+        {
+          "name": "image_path",
+          "type": "STRING",
+          "slot_index": 3,
+          "links": null
         }
       ],
       "properties": {
-        "cnr_id": "comfyui-kjnodes",
-        "ver": "c8f5fc0760184fdfe43f5a320f34c77b0cc22e2d"
+        "Node name for S&R": "LoadImagesFromFolderKJ"
       },
       "widgets_values": [
-        4,
-        null
+        "",
+        1024,
+        576,
+        "crop",
+        0,
+        0,
+        false
       ],
       "color": "#432",
-      "bgcolor": "#653"
+      "bgcolor": "#653",
+      "title": "Generated Scene Image Batch (KJ folder loader)"
     },
     {
       "id": 410,
@@ -1333,9 +1338,11 @@
         222.798828125,
         489.3619791666667
       ],
-      "flags": {},
+      "flags": {
+        "collapsed": true
+      },
       "order": 5,
-      "mode": 0,
+      "mode": 2,
       "inputs": [],
       "outputs": [
         {
@@ -1376,9 +1383,11 @@
         225.6640625,
         460.4947916666667
       ],
-      "flags": {},
+      "flags": {
+        "collapsed": true
+      },
       "order": 6,
-      "mode": 0,
+      "mode": 2,
       "inputs": [],
       "outputs": [
         {
@@ -1738,10 +1747,10 @@
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "title": "START HERE - ALL IN ONE",
+      "title": "FULL SCENE BATCHES",
       "properties": {},
       "widgets_values": [
-        "### START HERE - All-in-one 2h Yvann workflow\nThis canvas contains the actual Yvann Images-to-Video graph plus the longform cue-sheet controls.\nYvann expects four images; keep images_per_chunk=4. The Four Generated Images node exposes exactly yvann_image_1 through yvann_image_4 for inspection.\n1. Choose/upload the full music mix in Load Audio.\n2. Paste/edit the cue sheet in Cue Sheet Textbox + Parser.\n3. Press Queue.\nThe launcher generates four images per timestamp batch, splits the audio, injects those four images/audio into the Yvann graph nodes on this canvas, and renders chunks through Yvann output node 410."
+        "### START HERE - Longform Yvann workflow\nThis canvas uses the actual Yvann audio-reactive graph with a folder image-batch loader.\n1. Choose/upload the full music mix in Load Audio.\n2. Paste/edit the cue sheet in Cue Sheet Textbox + Parser.\n3. Queue the launcher.\nEach timestamp range generates a scene folder with one varied image every image_interval_seconds. The KJ folder loader feeds the full folder batch to Yvann; no fixed four-image limit is used."
       ]
     },
     {
@@ -2139,50 +2148,6 @@
       },
       "widgets_values": [
         45.0
-      ]
-    },
-    {
-      "id": 710,
-      "type": "PrimitiveInt",
-      "pos": [
-        -1410,
-        605
-      ],
-      "size": [
-        280,
-        72
-      ],
-      "flags": {},
-      "order": 710,
-      "mode": 0,
-      "inputs": [
-        {
-          "localized_name": "value",
-          "name": "value",
-          "type": "INT",
-          "widget": {
-            "name": "value"
-          },
-          "link": null
-        }
-      ],
-      "outputs": [
-        {
-          "localized_name": "INT",
-          "name": "INT",
-          "type": "INT",
-          "links": [
-            8207
-          ]
-        }
-      ],
-      "title": "images_per_chunk",
-      "properties": {
-        "Node name for S&R": "PrimitiveInt"
-      },
-      "widgets_values": [
-        4,
-        "fixed"
       ]
     },
     {
@@ -2676,9 +2641,9 @@
           "link": 8206
         },
         {
-          "name": "images_per_chunk",
-          "type": "INT",
-          "link": 8207
+          "name": "image_interval_seconds",
+          "type": "FLOAT",
+          "link": 8504
         },
         {
           "name": "image_backend",
@@ -2767,7 +2732,7 @@
         "output/longform_yvann",
         "user/default/workflows/Yvann_Longform_All_In_One_2H_Video_WORKFLOW.json",
         45.0,
-        4,
+        5.0,
         "comfy_api",
         42,
         true,
@@ -2966,32 +2931,17 @@
       ],
       "outputs": [
         {
-          "name": "yvann_image_1",
+          "name": "generated_scene_batch",
           "type": "IMAGE",
-          "links": []
+          "links": null
         },
         {
-          "name": "yvann_image_2",
-          "type": "IMAGE",
-          "links": []
-        },
-        {
-          "name": "yvann_image_3",
-          "type": "IMAGE",
-          "links": []
-        },
-        {
-          "name": "yvann_image_4",
-          "type": "IMAGE",
-          "links": []
-        },
-        {
-          "name": "image_slot_manifest",
+          "name": "image_batch_manifest",
           "type": "STRING",
-          "links": []
+          "links": null
         }
       ],
-      "title": "Four Generated Images For Yvann Slots",
+      "title": "Generated Scene Batch Preview",
       "properties": {
         "Node name for S&R": "LongformYvannFourImagesOutput"
       },
@@ -3101,46 +3051,57 @@
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "title": "WHY FOUR IMAGES?",
+      "title": "FULL SCENE BATCHES",
       "properties": {},
       "widgets_values": [
-        "### Yvann expects four images\nThe longform generator creates images_per_chunk images. Keep images_per_chunk at 4 for this Yvann workflow.\nFour Generated Images For Yvann Slots exposes the exact four images that will be used for the selected batch/chunk.\nDuring rendering, QUEUE THIS maps those four files into Yvann image slots 1-4 and then queues Yvann output node 410."
+        "### RUN THIS - Longform Yvann batch generator\n1. Choose/upload the full music mix.\n2. Paste/edit the cue sheet.\n3. Queue the launcher.\nEach timestamp range creates a scene folder with one varied image every image_interval_seconds. The generated image folder is fed to Yvann through a standard folder batch loader."
+      ]
+    },
+    {
+      "id": 732,
+      "type": "PrimitiveFloat",
+      "pos": [
+        -1120,
+        640
+      ],
+      "size": [
+        300,
+        70
+      ],
+      "flags": {},
+      "order": 49,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "FLOAT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "FLOAT",
+          "name": "FLOAT",
+          "type": "FLOAT",
+          "links": [
+            8504
+          ]
+        }
+      ],
+      "title": "image_interval_seconds (one image every N seconds)",
+      "properties": {
+        "Node name for S&R": "PrimitiveFloat"
+      },
+      "widgets_values": [
+        5.0
       ]
     }
   ],
   "links": [
-    [
-      899,
-      56,
-      0,
-      376,
-      0,
-      "IMAGE"
-    ],
-    [
-      900,
-      58,
-      0,
-      376,
-      1,
-      "IMAGE"
-    ],
-    [
-      903,
-      372,
-      0,
-      376,
-      3,
-      "IMAGE"
-    ],
-    [
-      904,
-      267,
-      0,
-      376,
-      2,
-      "IMAGE"
-    ],
     [
       1232,
       483,
@@ -3622,19 +3583,11 @@
       "FLOAT"
     ],
     [
-      8207,
-      710,
-      0,
-      721,
-      7,
-      "INT"
-    ],
-    [
       8208,
       711,
       0,
       721,
-      8,
+      9,
       "STRING"
     ],
     [
@@ -3642,7 +3595,7 @@
       712,
       0,
       721,
-      9,
+      10,
       "INT"
     ],
     [
@@ -3650,7 +3603,7 @@
       713,
       0,
       721,
-      10,
+      11,
       "BOOLEAN"
     ],
     [
@@ -3658,7 +3611,7 @@
       714,
       0,
       721,
-      11,
+      12,
       "BOOLEAN"
     ],
     [
@@ -3666,7 +3619,7 @@
       715,
       0,
       721,
-      12,
+      13,
       "BOOLEAN"
     ],
     [
@@ -3674,7 +3627,7 @@
       716,
       0,
       721,
-      13,
+      14,
       "FLOAT"
     ],
     [
@@ -3682,7 +3635,7 @@
       717,
       0,
       721,
-      14,
+      15,
       "INT"
     ],
     [
@@ -3690,7 +3643,7 @@
       718,
       0,
       721,
-      15,
+      16,
       "INT"
     ],
     [
@@ -3698,7 +3651,7 @@
       701,
       0,
       721,
-      16,
+      17,
       "AUDIO"
     ],
     [
@@ -3804,6 +3757,14 @@
       726,
       2,
       "STRING"
+    ],
+    [
+      8504,
+      732,
+      0,
+      721,
+      8,
+      "FLOAT"
     ]
   ],
   "groups": [],

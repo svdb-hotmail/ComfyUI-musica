@@ -84,11 +84,6 @@
           "link": 1631
         },
         {
-          "name": "images_per_chunk",
-          "type": "INT",
-          "link": 1632
-        },
-        {
           "name": "image_backend",
           "type": "STRING",
           "link": 1633
@@ -179,7 +174,6 @@
         "user/default/workflows/AudioReactive_ImagesToVideo_Yvann.json",
         45.0,
         0.0,
-        4,
         "comfy_api",
         "style",
         "derived",
@@ -596,50 +590,6 @@
       },
       "widgets_values": [
         0.0
-      ]
-    },
-    {
-      "id": 540,
-      "type": "PrimitiveInt",
-      "pos": [
-        -1500,
-        610
-      ],
-      "size": [
-        430,
-        72
-      ],
-      "flags": {},
-      "order": 40,
-      "mode": 0,
-      "inputs": [
-        {
-          "localized_name": "value",
-          "name": "value",
-          "type": "INT",
-          "widget": {
-            "name": "value"
-          },
-          "link": null
-        }
-      ],
-      "outputs": [
-        {
-          "localized_name": "INT",
-          "name": "INT",
-          "type": "INT",
-          "links": [
-            1632
-          ]
-        }
-      ],
-      "title": "images_per_chunk",
-      "properties": {
-        "Node name for S&R": "PrimitiveInt"
-      },
-      "widgets_values": [
-        4,
-        "fixed"
       ]
     },
     {
@@ -1233,14 +1183,6 @@
       529,
       7,
       "FLOAT"
-    ],
-    [
-      1632,
-      540,
-      0,
-      529,
-      8,
-      "INT"
     ],
     [
       1633,

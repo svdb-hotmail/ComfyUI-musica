@@ -1,8 +1,8 @@
 {
   "id": "yvann-longform-comfyui-workflow-run-this",
   "revision": 0,
-  "last_node_id": 109,
-  "last_link_id": 7001,
+  "last_node_id": 110,
+  "last_link_id": 7002,
   "nodes": [
     {
       "id": 1,
@@ -20,10 +20,10 @@
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "title": "START HERE",
+      "title": "FULL SCENE BATCHES",
       "properties": {},
       "widgets_values": [
-        "### START HERE - Real ComfyUI Workflow\n1. Paste/edit the cue sheet in the Yvann Cue Sheet Parser textbox.\n2. Set audio_path to the 2-hour mix in ComfyUI input. That same value feeds the visible audio loader/preview.\n3. Press Queue.\nThe parser outputs a batch plan; the generator launches the longform job; Generated Batch Images Output exposes the generated images as an IMAGE output and thumbnails.\nSet max_chunks=2 for a smoke test, or 0 for the full mix. Set launch_now=false and Queue to refresh outputs without starting another job."
+        "### START HERE - Longform Yvann workflow\nThis canvas uses the actual Yvann audio-reactive graph with a folder image-batch loader.\n1. Choose/upload the full music mix in Load Audio.\n2. Paste/edit the cue sheet in Cue Sheet Textbox + Parser.\n3. Queue the launcher.\nEach timestamp range generates a scene folder with one varied image every image_interval_seconds. The KJ folder loader feeds the full folder batch to Yvann; no fixed four-image limit is used."
       ]
     },
     {
@@ -357,50 +357,6 @@
       },
       "widgets_values": [
         45.0
-      ]
-    },
-    {
-      "id": 9,
-      "type": "PrimitiveInt",
-      "pos": [
-        -460,
-        810
-      ],
-      "size": [
-        280,
-        72
-      ],
-      "flags": {},
-      "order": 9,
-      "mode": 0,
-      "inputs": [
-        {
-          "localized_name": "value",
-          "name": "value",
-          "type": "INT",
-          "widget": {
-            "name": "value"
-          },
-          "link": null
-        }
-      ],
-      "outputs": [
-        {
-          "localized_name": "INT",
-          "name": "INT",
-          "type": "INT",
-          "links": [
-            3007
-          ]
-        }
-      ],
-      "title": "images_per_chunk",
-      "properties": {
-        "Node name for S&R": "PrimitiveInt"
-      },
-      "widgets_values": [
-        4,
-        "fixed"
       ]
     },
     {
@@ -893,9 +849,9 @@
           "link": 3006
         },
         {
-          "name": "images_per_chunk",
-          "type": "INT",
-          "link": 3007
+          "name": "image_interval_seconds",
+          "type": "FLOAT",
+          "link": 7002
         },
         {
           "name": "image_backend",
@@ -974,7 +930,7 @@
         "output/longform_yvann",
         "user/default/workflows/AudioReactive_ImagesToVideo_Yvann.json",
         45.0,
-        4,
+        5.0,
         "comfy_api",
         42,
         true,
@@ -1278,6 +1234,49 @@
       "widgets_values": [
         "### Where is the actual Yvann flow?\nIt is the workflow file selected by yvann_workflow_path.\nThis canvas is the control/inspection layer. The actual Yvann Images-to-Video graph remains in AudioReactive_ImagesToVideo_Yvann and is loaded by the launcher for each chunk.\nThe inspector node lists the Yvann LoadImage, LoadAudio, audio-reactive, and video-output nodes that will be used."
       ]
+    },
+    {
+      "id": 110,
+      "type": "PrimitiveFloat",
+      "pos": [
+        -440,
+        1020
+      ],
+      "size": [
+        300,
+        70
+      ],
+      "flags": {},
+      "order": 49,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "FLOAT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "FLOAT",
+          "name": "FLOAT",
+          "type": "FLOAT",
+          "links": [
+            7002
+          ]
+        }
+      ],
+      "title": "image_interval_seconds (one image every N seconds)",
+      "properties": {
+        "Node name for S&R": "PrimitiveFloat"
+      },
+      "widgets_values": [
+        5.0
+      ]
     }
   ],
   "links": [
@@ -1362,19 +1361,11 @@
       "FLOAT"
     ],
     [
-      3007,
-      9,
-      0,
-      100,
-      7,
-      "INT"
-    ],
-    [
       3008,
       10,
       0,
       100,
-      8,
+      9,
       "STRING"
     ],
     [
@@ -1382,7 +1373,7 @@
       11,
       0,
       100,
-      9,
+      10,
       "INT"
     ],
     [
@@ -1390,7 +1381,7 @@
       12,
       0,
       100,
-      10,
+      11,
       "BOOLEAN"
     ],
     [
@@ -1398,7 +1389,7 @@
       13,
       0,
       100,
-      11,
+      12,
       "BOOLEAN"
     ],
     [
@@ -1406,7 +1397,7 @@
       14,
       0,
       100,
-      12,
+      13,
       "BOOLEAN"
     ],
     [
@@ -1414,7 +1405,7 @@
       15,
       0,
       100,
-      13,
+      14,
       "FLOAT"
     ],
     [
@@ -1422,7 +1413,7 @@
       16,
       0,
       100,
-      14,
+      15,
       "INT"
     ],
     [
@@ -1430,7 +1421,7 @@
       17,
       0,
       100,
-      15,
+      16,
       "INT"
     ],
     [
@@ -1520,6 +1511,14 @@
       108,
       0,
       "STRING"
+    ],
+    [
+      7002,
+      110,
+      0,
+      100,
+      8,
+      "FLOAT"
     ]
   ],
   "groups": [],

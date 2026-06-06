@@ -104,6 +104,7 @@ class JobConfig:
 
     image_backend: str = "procedural"  # procedural | comfy_api
     images_per_chunk: int = 1
+    image_interval_seconds: float = 5.0
     image_width: int = 1024
     image_height: int = 576
 
@@ -155,6 +156,7 @@ class Chunk:
     visual_batch_id: str | None = None
     visual_batch_start: float | None = None
     visual_batch_end: float | None = None
+    visual_batch_image_paths: list[str] | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return dataclasses.asdict(self)
@@ -311,8 +313,8 @@ class LongformYvannRunner:
             raise ValueError("overlap_seconds must be >= 0")
         if self.config.overlap_seconds >= self.config.chunk_duration_seconds:
             raise ValueError("overlap_seconds must be less than chunk_duration_seconds")
-        if self.config.images_per_chunk < 1:
-            raise ValueError("images_per_chunk must be >= 1")
+        if self.config.image_interval_seconds <= 0:
+            raise ValueError("image_interval_seconds must be > 0")
 
         run_cmd(["ffmpeg", "-version"])  # validates ffmpeg availability
         run_cmd(["ffprobe", "-version"])  # validates ffprobe availability
@@ -520,6 +522,43 @@ class LongformYvannRunner:
             parts.append(continuity.strip())
         return ", ".join([p for p in parts if p])
 
+    def _batch_dir_for(self, batch_id: str | None) -> Path:
+        safe = re.sub(r"[^A-Za-z0-9_.-]+", "_", batch_id or "unbatched").strip("_") or "unbatched"
+        return self.images_dir / safe
+
+    def _image_count_for_duration(self, duration: float) -> int:
+        return max(1, int(math.ceil(duration / max(self.config.image_interval_seconds, 1e-6))))
+
+    def _variation_prompt(self, base_prompt: str, batch_id: str | None, image_index: int, count: int) -> str:
+        phase = image_index / max(count - 1, 1)
+        camera = [
+            "wide establishing view",
+            "medium cinematic composition",
+            "close-up detail shot",
+            "low-angle dramatic view",
+            "aerial tracking view",
+            "macro texture detail",
+        ][(image_index - 1) % 6]
+        lighting = [
+            "soft atmospheric light",
+            "high contrast rim light",
+            "volumetric beams",
+            "reflected colored light",
+            "deep shadow gradients",
+            "glowing practical lights",
+        ][(image_index - 1) % 6]
+        motion = [
+            "designed as a video keyframe with clear directional motion",
+            "progressive transformation from the previous image",
+            "environment evolving with new foreground elements",
+            "background reveals more depth and scale",
+            "subject shifts position while preserving scene continuity",
+        ][(image_index - 1) % 5]
+        return (
+            f"{base_prompt}, visual batch {batch_id or 'unbatched'}, image {image_index} of {count}, "
+            f"timeline phase {phase:.2f}, {camera}, {lighting}, {motion}, no text, no watermark"
+        )
+
     def build_manifest(self) -> list[Chunk]:
         script_text = self.load_script_text()
         audio_duration = self._audio_duration or self.get_audio_duration(self.audio_path)
@@ -552,7 +591,6 @@ class LongformYvannRunner:
             prev_summary = summary
 
             chunk_id = f"chunk_{i:04d}"
-            image_prompts = [scene_prompt for _ in range(self.config.images_per_chunk)]
             chunk = Chunk(
                 chunk_id=chunk_id,
                 index=i,
@@ -563,7 +601,7 @@ class LongformYvannRunner:
                 scene_prompt=scene_prompt,
                 negative_prompt=self.config.negative_prompt,
                 visual_theme_tags=[self._energy_tag(frac)] + (self.config.motifs or []),
-                image_generation_prompts=image_prompts,
+                image_generation_prompts=[scene_prompt],
                 assigned_image_paths=[],
                 audio_chunk_path=str(self.audio_chunks_dir / f"{chunk_id}.wav"),
                 video_chunk_path=str(self.videos_dir / f"{chunk_id}.mp4"),
@@ -571,6 +609,7 @@ class LongformYvannRunner:
                 visual_batch_id=visual_cue.cue_id if visual_cue else None,
                 visual_batch_start=visual_cue.start_time if visual_cue else None,
                 visual_batch_end=visual_cue.end_time if visual_cue else None,
+                visual_batch_image_paths=[],
             )
             chunks.append(chunk)
 
@@ -613,6 +652,7 @@ class LongformYvannRunner:
             "total_audio_duration": self._audio_duration,
             "chunk_duration": self.config.chunk_duration_seconds,
             "overlap": self.config.overlap_seconds,
+            "image_interval_seconds": self.config.image_interval_seconds,
             "number_of_chunks": len(chunks),
             "current_chunk_index": 0,
             "completed_chunks": [],
@@ -796,33 +836,45 @@ class LongformYvannRunner:
         return p
 
     def generate_images_for_chunk(self, chunk: Chunk) -> None:
-        if chunk.assigned_image_paths and not self.config.overwrite:
+        if chunk.assigned_image_paths and chunk.visual_batch_image_paths and not self.config.overwrite:
             return
 
-        chunk.assigned_image_paths = []
-        for variant in range(self.config.images_per_chunk):
-            seed = self._seed_for(chunk.index, variant, chunk.image_generation_prompts[variant])
-            dst = self.images_dir / f"{chunk.chunk_id}_img_{variant + 1:02d}.png"
+        batch_id = chunk.visual_batch_id or chunk.chunk_id
+        batch_start = chunk.visual_batch_start if chunk.visual_batch_start is not None else chunk.start_time
+        batch_end = chunk.visual_batch_end if chunk.visual_batch_end is not None else chunk.end_time
+        batch_duration = max(batch_end - batch_start, chunk.chunk_duration)
+        batch_count = self._image_count_for_duration(batch_duration)
+        batch_dir = self._batch_dir_for(batch_id)
+        batch_dir.mkdir(parents=True, exist_ok=True)
+
+        batch_images: list[str] = []
+        for image_number in range(1, batch_count + 1):
+            prompt = self._variation_prompt(chunk.scene_prompt, batch_id, image_number, batch_count)
+            seed = self._seed_for(chunk.index, image_number, prompt)
+            dst = batch_dir / f"{batch_id}_{image_number:04d}.png"
 
             if dst.exists() and not self.config.overwrite:
-                chunk.assigned_image_paths.append(str(dst))
+                batch_images.append(str(dst))
                 continue
 
             if self.config.image_backend == "comfy_api":
                 try:
                     generated = self._generate_comfy_t2i_image(
-                        chunk.image_generation_prompts[variant],
+                        prompt,
                         chunk.negative_prompt,
                         seed,
                     )
                     shutil.copy2(generated, dst)
                 except Exception:
                     # Fallback to procedural to keep long jobs progressing.
-                    self._generate_procedural_image(dst, chunk.image_generation_prompts[variant], seed)
+                    self._generate_procedural_image(dst, prompt, seed)
             else:
-                self._generate_procedural_image(dst, chunk.image_generation_prompts[variant], seed)
+                self._generate_procedural_image(dst, prompt, seed)
 
-            chunk.assigned_image_paths.append(str(dst))
+            batch_images.append(str(dst))
+
+        chunk.visual_batch_image_paths = batch_images
+        chunk.assigned_image_paths = batch_images
 
     def _load_and_convert_yvann_template(self) -> dict[str, Any]:
         workflow = json.loads(self.workflow_template_path.read_text(encoding="utf-8"))
@@ -884,20 +936,47 @@ class LongformYvannRunner:
         target_audio = comfy_input / target_audio_name
         shutil.copy2(local_audio, target_audio)
 
-        image_names: list[str] = []
-        for i, img in enumerate(chunk.assigned_image_paths, start=1):
-            src = Path(img)
-            name = f"{self.job_id}_{chunk.chunk_id}_img_{i:02d}{src.suffix.lower()}"
-            dst = comfy_input / name
-            shutil.copy2(src, dst)
-            image_names.append(name)
+        batch_images = [Path(p) for p in chunk.assigned_image_paths if Path(p).exists()]
+        if not batch_images:
+            raise RuntimeError(f"No generated images found for {chunk.chunk_id}")
+        batch_dir = batch_images[0].parent
+        batch_loader_nodes = self._find_node_ids(prompt, "LoadImagesFromFolderKJ")
+        if batch_loader_nodes:
+            batch_loader_id = batch_loader_nodes[0]
+            prompt[batch_loader_id].setdefault("inputs", {}).update(
+                {
+                    "folder": str(batch_dir),
+                    "width": self.config.image_width,
+                    "height": self.config.image_height,
+                    "keep_aspect_ratio": "crop",
+                    "image_load_cap": 0,
+                    "start_index": 0,
+                    "include_subfolders": False,
+                }
+            )
+        else:
+            batch_loader_id = "longform_batch_images"
+            prompt[batch_loader_id] = {
+                "class_type": "LoadImagesFromFolderKJ",
+                "inputs": {
+                    "folder": str(batch_dir),
+                    "width": self.config.image_width,
+                    "height": self.config.image_height,
+                    "keep_aspect_ratio": "crop",
+                    "image_load_cap": 0,
+                    "start_index": 0,
+                    "include_subfolders": False,
+                },
+                "_meta": {"title": f"Longform generated image batch {chunk.visual_batch_id or chunk.chunk_id}"},
+            }
 
-        load_images = self._find_node_ids(prompt, "LoadImage")
-        if not load_images:
-            raise RuntimeError("No LoadImage nodes found in converted Yvann prompt")
-        for idx, nid in enumerate(load_images):
-            chosen = image_names[min(idx, len(image_names) - 1)]
-            prompt[nid].setdefault("inputs", {})["image"] = chosen
+        image_batch_nodes = self._find_node_ids(prompt, "ImageBatchMulti")
+        original_batch_node = image_batch_nodes[0] if image_batch_nodes else None
+        for node in prompt.values():
+            inputs = node.setdefault("inputs", {})
+            for key, value in list(inputs.items()):
+                if original_batch_node and value == [original_batch_node, 0]:
+                    inputs[key] = [batch_loader_id, 0]
 
         load_audio = self._find_node_ids(prompt, "LoadAudio")
         if not load_audio:

@@ -254,7 +254,7 @@ class LongformYvannLauncher:
                 ),
                 "chunk_duration_seconds": ("FLOAT", {"default": 45.0, "min": 1.0, "max": 3600.0, "step": 1.0}),
                 "overlap_seconds": ("FLOAT", {"default": 0.0, "min": 0.0, "max": 3599.0, "step": 1.0}),
-                "images_per_chunk": ("INT", {"default": 4, "min": 1, "max": 8, "step": 1}),
+                "image_interval_seconds": ("FLOAT", {"default": 5.0, "min": 1.0, "max": 600.0, "step": 1.0}),
                 "image_backend": ("STRING", {"multiline": False, "default": "comfy_api"}),
                 "continuity_mode": ("STRING", {"multiline": False, "default": "style"}),
                 "seed_strategy": ("STRING", {"multiline": False, "default": "derived"}),
@@ -289,7 +289,7 @@ class LongformYvannLauncher:
         workflow_template_path,
         chunk_duration_seconds,
         overlap_seconds,
-        images_per_chunk,
+        image_interval_seconds,
         image_backend,
         continuity_mode,
         seed_strategy,
@@ -329,7 +329,7 @@ class LongformYvannLauncher:
             "negative_prompt": "low quality, blurry, watermark, text artifacts",
             "continuity_mode": continuity_mode,
             "image_backend": image_backend,
-            "images_per_chunk": int(images_per_chunk),
+            "image_interval_seconds": float(image_interval_seconds),
             "image_width": 640,
             "image_height": 360,
             "comfy_t2i_checkpoint": "DreamShaper_8_pruned.safetensors",
@@ -403,7 +403,7 @@ class LongformYvannCueSheetLauncher:
                     {"multiline": False, "default": "user/default/workflows/AudioReactive_ImagesToVideo_Yvann.json"},
                 ),
                 "chunk_duration_seconds": ("FLOAT", {"default": 45.0, "min": 1.0, "max": 3600.0, "step": 1.0}),
-                "images_per_chunk": ("INT", {"default": 4, "min": 1, "max": 8, "step": 1}),
+                "image_interval_seconds": ("FLOAT", {"default": 5.0, "min": 1.0, "max": 600.0, "step": 1.0}),
                 "image_backend": ("STRING", {"multiline": False, "default": "comfy_api"}),
                 "base_seed": ("INT", {"default": 42, "min": 0, "max": 2147483647, "step": 1}),
                 "resume": ("BOOLEAN", {"default": True}),
@@ -431,7 +431,7 @@ class LongformYvannCueSheetLauncher:
         output_root,
         yvann_workflow_path,
         chunk_duration_seconds,
-        images_per_chunk,
+        image_interval_seconds,
         image_backend,
         base_seed,
         resume,
@@ -480,7 +480,7 @@ class LongformYvannCueSheetLauncher:
             "negative_prompt": "low quality, blurry, watermark, text artifacts",
             "continuity_mode": "style",
             "image_backend": image_backend,
-            "images_per_chunk": int(images_per_chunk),
+            "image_interval_seconds": float(image_interval_seconds),
             "image_width": 640,
             "image_height": 360,
             "comfy_t2i_checkpoint": "DreamShaper_8_pruned.safetensors",
@@ -845,13 +845,13 @@ class LongformYvannFourImagesOutput:
             }
         }
 
-    RETURN_TYPES = ("IMAGE", "IMAGE", "IMAGE", "IMAGE", "STRING")
-    RETURN_NAMES = ("yvann_image_1", "yvann_image_2", "yvann_image_3", "yvann_image_4", "image_slot_manifest")
-    FUNCTION = "load_four_images"
+    RETURN_TYPES = ("IMAGE", "STRING")
+    RETURN_NAMES = ("generated_scene_batch", "image_batch_manifest")
+    FUNCTION = "load_scene_batch"
     OUTPUT_NODE = True
     CATEGORY = "Yvann/Longform"
 
-    def load_four_images(self, job_dir, output_root, batch_or_chunk_filter):
+    def load_scene_batch(self, job_dir, output_root, batch_or_chunk_filter):
         resolved_job_dir = Path(str(job_dir).strip()) if str(job_dir).strip() else None
         if resolved_job_dir and not resolved_job_dir.is_absolute():
             resolved_job_dir = (_repo_root() / resolved_job_dir).resolve()
@@ -861,12 +861,12 @@ class LongformYvannFourImagesOutput:
         placeholder = torch.zeros((1, 64, 64, 3), dtype=torch.float32)
         if not resolved_job_dir or not resolved_job_dir.exists():
             text = "No generated image job found yet. Queue the generator first."
-            return {"ui": {"text": [text]}, "result": (placeholder, placeholder, placeholder, placeholder, text)}
+            return {"ui": {"text": [text]}, "result": (placeholder, text)}
 
         manifest_path = resolved_job_dir / "manifest" / "chunk_manifest.json"
         if not manifest_path.exists():
             text = f"No chunk manifest found in {resolved_job_dir}. Images are not ready yet."
-            return {"ui": {"text": [text]}, "result": (placeholder, placeholder, placeholder, placeholder, text)}
+            return {"ui": {"text": [text]}, "result": (placeholder, text)}
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         filter_value = str(batch_or_chunk_filter).strip().lower()
@@ -882,34 +882,42 @@ class LongformYvannFourImagesOutput:
 
         if selected_chunk is None:
             text = f"No generated images matched filter '{batch_or_chunk_filter}' in {resolved_job_dir}."
-            return {"ui": {"text": [text]}, "result": (placeholder, placeholder, placeholder, placeholder, text)}
+            return {"ui": {"text": [text]}, "result": (placeholder, text)}
 
         image_paths = [Path(p) for p in selected_chunk.get("assigned_image_paths", []) if Path(p).exists()]
         if not image_paths:
             text = f"Selected chunk has no generated image files yet: {selected_chunk.get('chunk_id')}"
-            return {"ui": {"text": [text]}, "result": (placeholder, placeholder, placeholder, placeholder, text)}
+            return {"ui": {"text": [text]}, "result": (placeholder, text)}
 
         tensors: list[torch.Tensor] = []
         ui_images: list[dict[str, str]] = []
         lines = [
             f"Selected chunk: {selected_chunk.get('chunk_id')} batch {selected_chunk.get('visual_batch_id')}",
             f"Time: {_sec_to_hms(float(selected_chunk.get('start_time', 0)))}-{_sec_to_hms(float(selected_chunk.get('end_time', 0)))}",
-            "Yvann expects four image slots:",
+            f"Generated scene batch images: {len(image_paths)}",
         ]
-        for idx in range(4):
-            image_path = image_paths[min(idx, len(image_paths) - 1)]
-            tensor = _image_to_tensor(image_path).unsqueeze(0)
+        for image_path in image_paths:
+            tensor = _image_to_tensor(image_path)
             tensors.append(tensor)
             entry = _image_ui_entry(image_path)
             if entry:
                 ui_images.append(entry)
-            lines.append(f"slot {idx + 1}: {image_path.name}")
+            lines.append(image_path.name)
+
+        first_h, first_w = tensors[0].shape[0], tensors[0].shape[1]
+        normalized: list[torch.Tensor] = []
+        for tensor in tensors:
+            if tensor.shape[0] == first_h and tensor.shape[1] == first_w:
+                normalized.append(tensor)
+                continue
+            pil = Image.fromarray((tensor.numpy() * 255).astype(np.uint8)).resize((first_w, first_h), Image.Resampling.LANCZOS)
+            normalized.append(torch.from_numpy(np.asarray(pil).astype(np.float32) / 255.0))
 
         ui: dict[str, object] = {"text": lines}
         if ui_images:
             ui["images"] = ui_images
         text = "\n".join(lines)
-        return {"ui": ui, "result": (tensors[0], tensors[1], tensors[2], tensors[3], text)}
+        return {"ui": ui, "result": (torch.stack(normalized, dim=0), text)}
 
 
 class LongformYvannWorkflowInspector:
@@ -938,6 +946,7 @@ class LongformYvannWorkflowInspector:
 
         workflow = json.loads(workflow_path.read_text(encoding="utf-8"))
         load_images = []
+        batch_loaders = []
         load_audio = []
         audio_nodes = []
         outputs = []
@@ -948,6 +957,8 @@ class LongformYvannWorkflowInspector:
             node_id = node.get("id")
             if node_type == "LoadImage":
                 load_images.append(f"{node_id} {title}")
+            elif node_type in {"LoadImagesFromFolderKJ", "VHS_LoadImagesPath"}:
+                batch_loaders.append(f"{node_id} {node_type} {title}")
             elif node_type == "LoadAudio" or title_lower == "load audio":
                 load_audio.append(f"{node_id} {title}")
             elif "Audio" in node_type or "audio" in title_lower:
@@ -960,15 +971,18 @@ class LongformYvannWorkflowInspector:
             f"Workflow file: {workflow_path}",
             "",
             "The longform launcher does not render video itself. For every timestamp chunk it:",
-            "1. generates batch images,",
-            "2. copies them into ComfyUI input,",
-            "3. replaces these Yvann LoadImage nodes,",
-            "4. replaces the Yvann LoadAudio node with the chunk audio,",
-            "5. queues the Yvann video output node.",
+            "1. generates a full image folder for the timestamp batch,",
+            "2. points the Yvann folder batch loader at that image folder,",
+            "3. replaces the Yvann LoadAudio node with the chunk audio,",
+            "4. queues the Yvann video output node.",
             "",
-            "Yvann image inputs replaced per chunk:",
+            "Yvann folder batch loaders:",
         ]
-        lines.extend([f"- {item}" for item in load_images] or ["- none found"])
+        lines.extend([f"- {item}" for item in batch_loaders] or ["- none found"])
+        if load_images:
+            lines.append("")
+            lines.append("Legacy LoadImage nodes still present but bypassed/collapsed:")
+            lines.extend([f"- {item}" for item in load_images])
         lines.append("")
         lines.append("Yvann audio input replaced per chunk:")
         lines.extend([f"- {item}" for item in load_audio] or ["- none found"])
@@ -1016,6 +1030,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "LongformYvannCueSheetBatchPlan": "Yvann Cue Sheet Batch Plan",
     "LongformYvannJobStatus": "Yvann Longform Job Status",
     "LongformYvannGeneratedImagesOutput": "Yvann Generated Batch Images Output",
-    "LongformYvannFourImagesOutput": "Yvann Four Image Slots Output",
+    "LongformYvannFourImagesOutput": "Yvann Generated Scene Batch Output",
     "LongformYvannWorkflowInspector": "Yvann Render Engine Inspector",
 }

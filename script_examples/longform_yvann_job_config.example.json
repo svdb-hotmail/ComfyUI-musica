@@ -19,7 +19,7 @@
   "negative_prompt": "low quality, blurry, watermark, text artifacts",
   "continuity_mode": "style",
   "image_backend": "comfy_api",
-  "images_per_chunk": 4,
+  "image_interval_seconds": 5.0,
   "image_width": 1024,
   "image_height": 576,
   "comfy_t2i_checkpoint": "DreamShaper_8_pruned.safetensors",

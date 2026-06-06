@@ -15,9 +15,11 @@
         222.798828125,
         506.9791666666667
       ],
-      "flags": {},
+      "flags": {
+        "collapsed": true
+      },
       "order": 0,
-      "mode": 0,
+      "mode": 2,
       "inputs": [],
       "outputs": [
         {
@@ -185,9 +187,11 @@
         240.06510416666669,
         476.328125
       ],
-      "flags": {},
+      "flags": {
+        "collapsed": true
+      },
       "order": 1,
-      "mode": 0,
+      "mode": 2,
       "inputs": [],
       "outputs": [
         {
@@ -218,61 +222,62 @@
     },
     {
       "id": 376,
-      "type": "ImageBatchMulti",
+      "type": "LoadImagesFromFolderKJ",
       "pos": [
         22.35878155539202,
         1864.60957581927
       ],
       "size": [
-        250.57291666666669,
-        232.5
+        360,
+        190
       ],
       "flags": {},
       "order": 11,
       "mode": 0,
-      "inputs": [
-        {
-          "name": "image_1",
-          "type": "IMAGE",
-          "link": 899
-        },
-        {
-          "name": "image_2",
-          "shape": 7,
-          "type": "IMAGE",
-          "link": 900
-        },
-        {
-          "name": "image_3",
-          "type": "IMAGE",
-          "link": 904
-        },
-        {
-          "name": "image_4",
-          "type": "IMAGE",
-          "link": 903
-        }
-      ],
+      "inputs": [],
       "outputs": [
         {
-          "name": "images",
+          "name": "image",
           "type": "IMAGE",
           "slot_index": 0,
           "links": [
             1579
           ]
+        },
+        {
+          "name": "mask",
+          "type": "MASK",
+          "slot_index": 1,
+          "links": null
+        },
+        {
+          "name": "count",
+          "type": "INT",
+          "slot_index": 2,
+          "links": null
+        },
+        {
+          "name": "image_path",
+          "type": "STRING",
+          "slot_index": 3,
+          "links": null
         }
       ],
       "properties": {
-        "cnr_id": "comfyui-kjnodes",
-        "ver": "c8f5fc0760184fdfe43f5a320f34c77b0cc22e2d"
+        "Node name for S&R": "LoadImagesFromFolderKJ"
       },
       "widgets_values": [
-        4,
-        null
+        "",
+        1024,
+        576,
+        "crop",
+        0,
+        0,
+        false
       ],
       "color": "#432",
-      "bgcolor": "#653"
+      "bgcolor": "#653",
+      "title": "Generated Scene Image Batch (KJ folder loader)"
     },
     {
       "id": 410,
@@ -1331,9 +1336,11 @@
         222.798828125,
         489.3619791666667
       ],
-      "flags": {},
+      "flags": {
+        "collapsed": true
+      },
       "order": 5,
-      "mode": 0,
+      "mode": 2,
       "inputs": [],
       "outputs": [
         {
@@ -1373,9 +1380,11 @@
         225.6640625,
         460.4947916666667
       ],
-      "flags": {},
+      "flags": {
+        "collapsed": true
+      },
       "order": 6,
-      "mode": 0,
+      "mode": 2,
       "inputs": [],
       "outputs": [
         {
@@ -1798,11 +1807,6 @@
           "link": 1631
         },
         {
-          "name": "images_per_chunk",
-          "type": "INT",
-          "link": 1632
-        },
-        {
           "name": "image_backend",
           "type": "STRING",
           "link": 1633
@@ -1893,7 +1897,6 @@
         "user/default/workflows/AudioReactive_ImagesToVideo_Yvann.json",
         45.0,
         0.0,
-        4,
         "comfy_api",
         "style",
         "derived",
@@ -2310,50 +2313,6 @@
       },
       "widgets_values": [
         0.0
-      ]
-    },
-    {
-      "id": 540,
-      "type": "PrimitiveInt",
-      "pos": [
-        -1455.5405058674485,
-        3478.2460889442655
-      ],
-      "size": [
-        430,
-        72
-      ],
-      "flags": {},
-      "order": 40,
-      "mode": 0,
-      "inputs": [
-        {
-          "localized_name": "value",
-          "name": "value",
-          "type": "INT",
-          "widget": {
-            "name": "value"
-          },
-          "link": null
-        }
-      ],
-      "outputs": [
-        {
-          "localized_name": "INT",
-          "name": "INT",
-          "type": "INT",
-          "links": [
-            1632
-          ]
-        }
-      ],
-      "title": "images_per_chunk",
-      "properties": {
-        "Node name for S&R": "PrimitiveInt"
-      },
-      "widgets_values": [
-        4,
-        "fixed"
       ]
     },
     {
@@ -2885,38 +2844,6 @@
   ],
   "links": [
     [
-      899,
-      56,
-      0,
-      376,
-      0,
-      "IMAGE"
-    ],
-    [
-      900,
-      58,
-      0,
-      376,
-      1,
-      "IMAGE"
-    ],
-    [
-      903,
-      372,
-      0,
-      376,
-      3,
-      "IMAGE"
-    ],
-    [
-      904,
-      267,
-      0,
-      376,
-      2,
-      "IMAGE"
-    ],
-    [
       1232,
       483,
       4,
@@ -3379,14 +3306,6 @@
       529,
       7,
       "FLOAT"
-    ],
-    [
-      1632,
-      540,
-      0,
-      529,
-      8,
-      "INT"
     ],
     [
       1633,
