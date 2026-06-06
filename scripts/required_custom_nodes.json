@@ -1,0 +1,44 @@
+{
+  "required_nodes": [
+    {
+      "name": "comfyui_yvann-nodes",
+      "repo": "https://github.com/yvann-ba/ComfyUI_Yvann-Nodes",
+      "branch": "main"
+    },
+    {
+      "name": "comfyui-videohelpersuite",
+      "repo": "https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite",
+      "branch": "main"
+    },
+    {
+      "name": "comfyui-animatediff-evolved",
+      "repo": "https://github.com/Kosinkadink/ComfyUI-AnimateDiff-Evolved",
+      "branch": "main"
+    },
+    {
+      "name": "comfyui_ipadapter_plus",
+      "repo": "https://github.com/cubiq/ComfyUI_IPAdapter_plus",
+      "branch": "main"
+    },
+    {
+      "name": "comfyui-advanced-controlnet",
+      "repo": "https://github.com/Kosinkadink/ComfyUI-Advanced-ControlNet",
+      "branch": "main"
+    },
+    {
+      "name": "comfyui_controlnet_aux",
+      "repo": "https://github.com/Fannovel16/comfyui_controlnet_aux",
+      "branch": "main"
+    },
+    {
+      "name": "comfyui-kjnodes",
+      "repo": "https://github.com/kijai/ComfyUI-KJNodes",
+      "branch": "main"
+    },
+    {
+      "name": "comfyui-workflow-to-api-converter-endpoint",
+      "repo": "https://github.com/SethRobinson/comfyui-workflow-to-api-converter-endpoint",
+      "branch": "main"
+    }
+  ]
+}
