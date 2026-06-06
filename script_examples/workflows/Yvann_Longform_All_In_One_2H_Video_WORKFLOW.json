@@ -919,9 +919,9 @@
       },
       "widgets_values": [
         50,
-        848,
-        480,
-        16
+        1280,
+        720,
+        12
       ]
     },
     {
@@ -2397,7 +2397,7 @@
         "Node name for S&R": "PrimitiveFloat"
       },
       "widgets_values": [
-        8.0
+        12.0
       ]
     },
     {
@@ -2440,7 +2440,7 @@
         "Node name for S&R": "PrimitiveInt"
       },
       "widgets_values": [
-        480,
+        720,
         "fixed"
       ]
     },
@@ -2630,6 +2630,11 @@
           "link": 8510
         },
         {
+          "name": "render_profile",
+          "type": "COMBO",
+          "link": null
+        },
+        {
           "name": "image_interval_seconds",
           "type": "FLOAT",
           "link": 8511
@@ -2727,16 +2732,17 @@
         "output/longform_yvann",
         "user/default/workflows/AudioReactive_ImagesToVideo_Yvann.json",
         45.0,
-        5.0,
-        848,
-        480,
+        "dj_final",
+        4.0,
+        1280,
+        720,
         "comfy_api",
         42,
         true,
         false,
         true,
-        8.0,
-        480,
+        12.0,
+        720,
         0
       ]
     },
@@ -3094,7 +3100,7 @@
         "Node name for S&R": "PrimitiveFloat"
       },
       "widgets_values": [
-        5.0
+        4.0
       ]
     },
     {
@@ -3132,12 +3138,12 @@
           ]
         }
       ],
-      "title": "render_width (848 for 16:9 480p)",
+      "title": "render_width (1280 dj final / 848 preview)",
       "properties": {
         "Node name for S&R": "PrimitiveInt"
       },
       "widgets_values": [
-        848,
+        1280,
         "fixed"
       ]
     },
@@ -3176,12 +3182,12 @@
           ]
         }
       ],
-      "title": "render_height (480p)",
+      "title": "render_height (720 dj final / 480 preview)",
       "properties": {
         "Node name for S&R": "PrimitiveInt"
       },
       "widgets_values": [
-        480,
+        720,
         "fixed"
       ]
     }
@@ -3776,7 +3782,7 @@
       732,
       0,
       721,
-      7,
+      8,
       "FLOAT"
     ],
     [
@@ -3784,7 +3790,7 @@
       733,
       0,
       721,
-      8,
+      9,
       "INT"
     ],
     [
@@ -3792,7 +3798,7 @@
       734,
       0,
       721,
-      9,
+      10,
       "INT"
     ],
     [
@@ -3800,7 +3806,7 @@
       711,
       0,
       721,
-      10,
+      11,
       "STRING"
     ],
     [
@@ -3808,7 +3814,7 @@
       712,
       0,
       721,
-      11,
+      12,
       "INT"
     ],
     [
@@ -3816,7 +3822,7 @@
       713,
       0,
       721,
-      12,
+      13,
       "BOOLEAN"
     ],
     [
@@ -3824,7 +3830,7 @@
       714,
       0,
       721,
-      13,
+      14,
       "BOOLEAN"
     ],
     [
@@ -3832,7 +3838,7 @@
       715,
       0,
       721,
-      14,
+      15,
       "BOOLEAN"
     ],
     [
@@ -3840,7 +3846,7 @@
       716,
       0,
       721,
-      15,
+      16,
       "FLOAT"
     ],
     [
@@ -3848,7 +3854,7 @@
       717,
       0,
       721,
-      16,
+      17,
       "INT"
     ],
     [
@@ -3856,7 +3862,7 @@
       718,
       0,
       721,
-      17,
+      18,
       "INT"
     ],
     [
@@ -3864,7 +3870,7 @@
       701,
       0,
       721,
-      18,
+      19,
       "AUDIO"
     ]
   ],

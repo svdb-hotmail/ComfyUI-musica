@@ -102,15 +102,16 @@ class JobConfig:
     negative_prompt: str = "low quality, blurry, watermark, text artifacts"
     continuity_mode: str = "style"  # independent | style | carry
 
+    render_profile: str = "dj_final"  # dj_final | preview_fast | custom
     image_backend: str = "procedural"  # procedural | comfy_api
     images_per_chunk: int = 1
     image_interval_seconds: float = 5.0
-    image_width: int = 1024
-    image_height: int = 576
+    image_width: int = 1280
+    image_height: int = 720
 
     comfy_t2i_checkpoint: str = "DreamShaper_8_pruned.safetensors"
-    comfy_t2i_steps: int = 12
-    comfy_t2i_cfg: float = 5.0
+    comfy_t2i_steps: int = 10
+    comfy_t2i_cfg: float = 4.5
     comfy_t2i_sampler: str = "euler"
     comfy_t2i_scheduler: str = "normal"
 
@@ -127,13 +128,41 @@ class JobConfig:
     resume_job_dir: str | None = None
 
     yvann_output_node_title: str = "First Pass | Low Res"
-    yvann_render_fps: float = 8.0
+    yvann_render_fps: float = 12.0
     yvann_min_frames: int = 24
-    yvann_max_frames: int = 192
+    yvann_max_frames: int = 720
     job_id: str | None = None
 
     # Optional cap for tests/sampling.
     max_chunks: int | None = None
+
+    def __post_init__(self) -> None:
+        profile = str(self.render_profile or "custom").strip().lower()
+        self.render_profile = profile
+        if profile in {"dj_final", "final", "production"}:
+            self.render_profile = "dj_final"
+            self.image_interval_seconds = 4.0
+            self.image_width = 1280
+            self.image_height = 720
+            self.comfy_t2i_steps = 10
+            self.comfy_t2i_cfg = 4.5
+            self.yvann_render_fps = 12.0
+            self.yvann_min_frames = 24
+            self.yvann_max_frames = 720
+            self.ffmpeg_crf = 18
+        elif profile in {"preview_fast", "preview", "fast"}:
+            self.render_profile = "preview_fast"
+            self.image_interval_seconds = 10.0
+            self.image_width = 848
+            self.image_height = 480
+            self.comfy_t2i_steps = 4
+            self.comfy_t2i_cfg = 3.5
+            self.yvann_render_fps = 4.0
+            self.yvann_min_frames = 8
+            self.yvann_max_frames = 192
+            self.ffmpeg_crf = 22
+        elif profile != "custom":
+            raise ValueError("render_profile must be 'dj_final', 'preview_fast', or 'custom'")
 
 
 @dataclasses.dataclass
@@ -527,7 +556,7 @@ class LongformYvannRunner:
         return self.images_dir / safe
 
     def _image_count_for_duration(self, duration: float) -> int:
-        return max(1, int(math.ceil(duration / max(self.config.image_interval_seconds, 1e-6))))
+        return max(2, int(math.ceil(duration / max(self.config.image_interval_seconds, 1e-6))))
 
     @staticmethod
     def _vae_safe_dimension(value: int) -> int:

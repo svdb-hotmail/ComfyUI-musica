@@ -2,7 +2,7 @@
   "id": "yvann-longform-batch-generator-run-me",
   "revision": 0,
   "last_node_id": 555,
-  "last_link_id": 1689,
+  "last_link_id": 1712,
   "nodes": [
     {
       "id": 528,
@@ -46,117 +46,122 @@
         {
           "name": "launch_now",
           "type": "BOOLEAN",
-          "link": 1667
+          "link": 1690
         },
         {
           "name": "script_path",
           "type": "STRING",
-          "link": 1668
+          "link": 1691
         },
         {
           "name": "audio_path",
           "type": "STRING",
-          "link": 1669
+          "link": 1692
         },
         {
           "name": "global_style_prompt",
           "type": "STRING",
-          "link": 1670
+          "link": 1693
         },
         {
           "name": "output_root",
           "type": "STRING",
-          "link": 1671
+          "link": 1694
         },
         {
           "name": "workflow_template_path",
           "type": "STRING",
-          "link": 1672
+          "link": 1695
         },
         {
           "name": "chunk_duration_seconds",
           "type": "FLOAT",
-          "link": 1673
+          "link": 1696
         },
         {
           "name": "overlap_seconds",
           "type": "FLOAT",
-          "link": 1674
+          "link": 1697
+        },
+        {
+          "name": "render_profile",
+          "type": "COMBO",
+          "link": null
         },
         {
           "name": "image_interval_seconds",
           "type": "FLOAT",
-          "link": 1675
+          "link": 1698
         },
         {
           "name": "render_width",
           "type": "INT",
-          "link": 1676
+          "link": 1699
         },
         {
           "name": "render_height",
           "type": "INT",
-          "link": 1677
+          "link": 1700
         },
         {
           "name": "image_backend",
           "type": "STRING",
-          "link": 1678
+          "link": 1701
         },
         {
           "name": "continuity_mode",
           "type": "STRING",
-          "link": 1679
+          "link": 1702
         },
         {
           "name": "seed_strategy",
           "type": "STRING",
-          "link": 1680
+          "link": 1703
         },
         {
           "name": "base_seed",
           "type": "INT",
-          "link": 1681
+          "link": 1704
         },
         {
           "name": "resume",
           "type": "BOOLEAN",
-          "link": 1682
+          "link": 1705
         },
         {
           "name": "overwrite",
           "type": "BOOLEAN",
-          "link": 1683
+          "link": 1706
         },
         {
           "name": "stop_on_failure",
           "type": "BOOLEAN",
-          "link": 1684
+          "link": 1707
         },
         {
           "name": "final_concat",
           "type": "BOOLEAN",
-          "link": 1685
+          "link": 1708
         },
         {
           "name": "yvann_render_fps",
           "type": "FLOAT",
-          "link": 1686
+          "link": 1709
         },
         {
           "name": "yvann_min_frames",
           "type": "INT",
-          "link": 1687
+          "link": 1710
         },
         {
           "name": "yvann_max_frames",
           "type": "INT",
-          "link": 1688
+          "link": 1711
         },
         {
           "name": "max_chunks",
           "type": "INT",
-          "link": 1689
+          "link": 1712
         }
       ],
       "outputs": [
@@ -189,9 +194,10 @@
         "user/default/workflows/AudioReactive_ImagesToVideo_Yvann.json",
         45.0,
         0.0,
-        5.0,
-        848,
-        480,
+        "dj_final",
+        4.0,
+        1280,
+        720,
         "comfy_api",
         "style",
         "derived",
@@ -200,9 +206,9 @@
         false,
         false,
         true,
-        8.0,
+        12.0,
         24,
-        480,
+        720,
         0
       ],
       "color": "#253",
@@ -287,7 +293,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            1667
+            1690
           ]
         }
       ],
@@ -330,7 +336,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            1668
+            1691
           ]
         }
       ],
@@ -375,7 +381,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            1669
+            1692
           ]
         }
       ],
@@ -420,7 +426,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            1670
+            1693
           ]
         }
       ],
@@ -465,7 +471,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            1671
+            1694
           ]
         }
       ],
@@ -510,7 +516,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            1672
+            1695
           ]
         }
       ],
@@ -555,7 +561,7 @@
           "name": "FLOAT",
           "type": "FLOAT",
           "links": [
-            1673
+            1696
           ]
         }
       ],
@@ -598,7 +604,7 @@
           "name": "FLOAT",
           "type": "FLOAT",
           "links": [
-            1674
+            1697
           ]
         }
       ],
@@ -641,8 +647,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            1678,
-            1679
+            1701
           ]
         }
       ],
@@ -687,7 +692,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            1680
+            1702
           ]
         }
       ],
@@ -732,7 +737,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            1681
+            1703
           ]
         }
       ],
@@ -777,7 +782,7 @@
           "name": "INT",
           "type": "INT",
           "links": [
-            1682
+            1704
           ]
         }
       ],
@@ -821,7 +826,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            1683
+            1705
           ]
         }
       ],
@@ -864,7 +869,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            1684
+            1706
           ]
         }
       ],
@@ -907,7 +912,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            1685
+            1707
           ]
         }
       ],
@@ -950,7 +955,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            1686
+            1708
           ]
         }
       ],
@@ -993,7 +998,7 @@
           "name": "FLOAT",
           "type": "FLOAT",
           "links": [
-            1687
+            1709
           ]
         }
       ],
@@ -1002,7 +1007,7 @@
         "Node name for S&R": "PrimitiveFloat"
       },
       "widgets_values": [
-        8.0
+        12.0
       ]
     },
     {
@@ -1036,7 +1041,7 @@
           "name": "INT",
           "type": "INT",
           "links": [
-            1688
+            1710
           ]
         }
       ],
@@ -1080,7 +1085,7 @@
           "name": "INT",
           "type": "INT",
           "links": [
-            1689
+            1711
           ]
         }
       ],
@@ -1089,7 +1094,7 @@
         "Node name for S&R": "PrimitiveInt"
       },
       "widgets_values": [
-        480,
+        720,
         "fixed"
       ]
     },
@@ -1123,7 +1128,9 @@
           "localized_name": "INT",
           "name": "INT",
           "type": "INT",
-          "links": null
+          "links": [
+            1712
+          ]
         }
       ],
       "title": "max_chunks",
@@ -1166,16 +1173,16 @@
           "name": "INT",
           "type": "INT",
           "links": [
-            1676
+            1699
           ]
         }
       ],
-      "title": "render_width (848 for 16:9 480p)",
+      "title": "render_width (1280 dj final / 848 preview)",
       "properties": {
         "Node name for S&R": "PrimitiveInt"
       },
       "widgets_values": [
-        848,
+        1280,
         "fixed"
       ]
     },
@@ -1210,16 +1217,16 @@
           "name": "INT",
           "type": "INT",
           "links": [
-            1677
+            1700
           ]
         }
       ],
-      "title": "render_height (480p)",
+      "title": "render_height (720 dj final / 480 preview)",
       "properties": {
         "Node name for S&R": "PrimitiveInt"
       },
       "widgets_values": [
-        480,
+        720,
         "fixed"
       ]
     },
@@ -1254,7 +1261,7 @@
           "name": "FLOAT",
           "type": "FLOAT",
           "links": [
-            1675
+            1698
           ]
         }
       ],
@@ -1263,13 +1270,13 @@
         "Node name for S&R": "PrimitiveFloat"
       },
       "widgets_values": [
-        5.0
+        4.0
       ]
     }
   ],
   "links": [
     [
-      1667,
+      1690,
       532,
       0,
       529,
@@ -1277,7 +1284,7 @@
       "BOOLEAN"
     ],
     [
-      1668,
+      1691,
       533,
       0,
       529,
@@ -1285,7 +1292,7 @@
       "STRING"
     ],
     [
-      1669,
+      1692,
       534,
       0,
       529,
@@ -1293,7 +1300,7 @@
       "STRING"
     ],
     [
-      1670,
+      1693,
       535,
       0,
       529,
@@ -1301,7 +1308,7 @@
       "STRING"
     ],
     [
-      1671,
+      1694,
       536,
       0,
       529,
@@ -1309,7 +1316,7 @@
       "STRING"
     ],
     [
-      1672,
+      1695,
       537,
       0,
       529,
@@ -1317,7 +1324,7 @@
       "STRING"
     ],
     [
-      1673,
+      1696,
       538,
       0,
       529,
@@ -1325,7 +1332,7 @@
       "FLOAT"
     ],
     [
-      1674,
+      1697,
       539,
       0,
       529,
@@ -1333,39 +1340,31 @@
       "FLOAT"
     ],
     [
-      1675,
+      1698,
       555,
       0,
       529,
-      8,
+      9,
       "FLOAT"
     ],
     [
-      1676,
+      1699,
       553,
-      0,
-      529,
-      9,
-      "INT"
-    ],
-    [
-      1677,
-      554,
       0,
       529,
       10,
       "INT"
     ],
     [
-      1678,
-      541,
+      1700,
+      554,
       0,
       529,
       11,
-      "STRING"
+      "INT"
     ],
     [
-      1679,
+      1701,
       541,
       0,
       529,
@@ -1373,7 +1372,7 @@
       "STRING"
     ],
     [
-      1680,
+      1702,
       542,
       0,
       529,
@@ -1381,23 +1380,23 @@
       "STRING"
     ],
     [
-      1681,
+      1703,
       543,
       0,
       529,
       14,
-      "INT"
+      "STRING"
     ],
     [
-      1682,
+      1704,
       544,
       0,
       529,
       15,
-      "BOOLEAN"
+      "INT"
     ],
     [
-      1683,
+      1705,
       545,
       0,
       529,
@@ -1405,7 +1404,7 @@
       "BOOLEAN"
     ],
     [
-      1684,
+      1706,
       546,
       0,
       529,
@@ -1413,7 +1412,7 @@
       "BOOLEAN"
     ],
     [
-      1685,
+      1707,
       547,
       0,
       529,
@@ -1421,23 +1420,23 @@
       "BOOLEAN"
     ],
     [
-      1686,
+      1708,
       548,
       0,
       529,
       19,
-      "FLOAT"
+      "BOOLEAN"
     ],
     [
-      1687,
+      1709,
       549,
       0,
       529,
       20,
-      "INT"
+      "FLOAT"
     ],
     [
-      1688,
+      1710,
       550,
       0,
       529,
@@ -1445,11 +1444,19 @@
       "INT"
     ],
     [
-      1689,
+      1711,
       551,
       0,
       529,
       22,
+      "INT"
+    ],
+    [
+      1712,
+      552,
+      0,
+      529,
+      23,
       "INT"
     ]
   ],
