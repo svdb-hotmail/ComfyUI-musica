@@ -9,6 +9,9 @@ from pathlib import Path
 import re
 
 from aiohttp import web
+import torch
+import numpy as np
+from PIL import Image
 
 from server import PromptServer
 
@@ -161,6 +164,12 @@ def _image_ui_entry(path: Path) -> dict[str, str] | None:
     except Exception:
         return None
     return {"filename": rel.name, "subfolder": str(rel.parent).replace("\\", "/"), "type": "output"}
+
+
+def _image_to_tensor(path: Path) -> torch.Tensor:
+    image = Image.open(path).convert("RGB")
+    array = np.asarray(image).astype(np.float32) / 255.0
+    return torch.from_numpy(array)
 
 
 def _write_config(config_path: Path, config: dict[str, object]) -> None:
@@ -472,6 +481,92 @@ class LongformYvannCueSheetLauncher:
         return (job_id, str(job_dir), str(config_path))
 
 
+class LongformYvannCueSheetParser:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "cue_sheet_text": (
+                    "STRING",
+                    {
+                        "multiline": True,
+                        "default": (
+                            "00:00:00  1 Deep Hertz - Melting Sun  # A. 00:00:00 Rocket preparing for launch. "
+                            "Close-ups of the rocket, smoke and ice falling.\n"
+                            "00:04:39  2 Miguel Montero - Captain Hook  # B. 00:03:30 Rocket taking off, "
+                            "climbing, stage separation."
+                        ),
+                    },
+                ),
+                "audio_path": ("STRING", {"multiline": False, "default": "input/Temple_of_the_Scales.mp3"}),
+                "chunk_duration_seconds": ("FLOAT", {"default": 45.0, "min": 1.0, "max": 3600.0, "step": 1.0}),
+                "max_chunks": ("INT", {"default": 0, "min": 0, "max": 100000, "step": 1}),
+            }
+        }
+
+    RETURN_TYPES = ("STRING", "STRING", "STRING")
+    RETURN_NAMES = ("cue_sheet_text", "cue_json", "batch_plan")
+    FUNCTION = "parse"
+    OUTPUT_NODE = True
+    CATEGORY = "Yvann/Longform"
+
+    def parse(self, cue_sheet_text, audio_path, chunk_duration_seconds, max_chunks):
+        resolved_audio = _resolve_path(audio_path)
+        duration = _audio_duration(resolved_audio)
+        cues = _extract_cues(str(cue_sheet_text), duration)
+        if not cues:
+            message = "No visual cue markers found. Add comments like: # A. 00:00:00 Rocket preparing for launch"
+            return {"ui": {"text": [message]}, "result": (str(cue_sheet_text), "[]", message)}
+
+        total_duration = duration or float(cues[-1]["end"])
+        chunks = _plan_chunks(
+            total_duration,
+            [float(cue["start"]) for cue in cues],
+            float(chunk_duration_seconds),
+            int(max_chunks),
+        )
+        chunk_entries = []
+        for idx, (start, end) in enumerate(chunks, start=1):
+            cue = next((c for c in cues if float(c["start"]) <= ((start + end) * 0.5) < float(c["end"])), cues[-1])
+            chunk_entries.append(
+                {
+                    "chunk_id": f"chunk_{idx:04d}",
+                    "start": start,
+                    "end": end,
+                    "visual_batch_id": cue["id"],
+                    "summary": cue["summary"],
+                }
+            )
+
+        parsed = {
+            "audio_path": str(resolved_audio),
+            "audio_duration": total_duration,
+            "visual_batches": cues,
+            "chunks": chunk_entries,
+        }
+        lines = [
+            "Parsed cue sheet",
+            f"Audio: {resolved_audio}",
+            f"Detected audio duration: {_sec_to_hms(total_duration) if duration else 'unknown; using cue ranges'}",
+            f"Visual batches: {len(cues)}",
+            f"Render chunks: {len(chunks)}",
+            "",
+            "Visual batches:",
+        ]
+        for cue in cues:
+            lines.append(
+                f"{cue['id']}  {_sec_to_hms(float(cue['start']))}-{_sec_to_hms(float(cue['end']))}  {str(cue['summary'])[:180]}"
+            )
+        lines.append("")
+        lines.append("Render chunks:")
+        for chunk in chunk_entries:
+            lines.append(
+                f"{chunk['chunk_id']}  {_sec_to_hms(float(chunk['start']))}-{_sec_to_hms(float(chunk['end']))}  batch {chunk['visual_batch_id']}"
+            )
+        batch_plan = "\n".join(lines)
+        return {"ui": {"text": lines}, "result": (str(cue_sheet_text), json.dumps(parsed, indent=2), batch_plan)}
+
+
 class LongformYvannCueSheetBatchPlan:
     @classmethod
     def INPUT_TYPES(cls):
@@ -612,6 +707,92 @@ class LongformYvannJobStatus:
         return {"ui": ui}
 
 
+class LongformYvannGeneratedImagesOutput:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "job_dir": ("STRING", {"multiline": False, "default": ""}),
+                "output_root": ("STRING", {"multiline": False, "default": "output/longform_yvann"}),
+                "batch_or_chunk_filter": ("STRING", {"multiline": False, "default": ""}),
+                "max_images": ("INT", {"default": 16, "min": 1, "max": 128, "step": 1}),
+            }
+        }
+
+    RETURN_TYPES = ("IMAGE", "STRING")
+    RETURN_NAMES = ("generated_images", "image_manifest")
+    FUNCTION = "load_images"
+    OUTPUT_NODE = True
+    CATEGORY = "Yvann/Longform"
+
+    def load_images(self, job_dir, output_root, batch_or_chunk_filter, max_images):
+        resolved_job_dir = Path(str(job_dir).strip()) if str(job_dir).strip() else None
+        if resolved_job_dir and not resolved_job_dir.is_absolute():
+            resolved_job_dir = (_repo_root() / resolved_job_dir).resolve()
+        if not resolved_job_dir or not resolved_job_dir.exists():
+            resolved_job_dir = _latest_manifest_job_dir(_resolve_path(str(output_root)))
+
+        lines: list[str] = []
+        ui_images: list[dict[str, str]] = []
+        tensors: list[torch.Tensor] = []
+        if not resolved_job_dir or not resolved_job_dir.exists():
+            placeholder = torch.zeros((1, 64, 64, 3), dtype=torch.float32)
+            text = "No generated image job found yet. Queue the generator first."
+            return {"ui": {"text": [text]}, "result": (placeholder, text)}
+
+        manifest_path = resolved_job_dir / "manifest" / "chunk_manifest.json"
+        if not manifest_path.exists():
+            placeholder = torch.zeros((1, 64, 64, 3), dtype=torch.float32)
+            text = f"No chunk manifest found in {resolved_job_dir}. Images are not ready yet."
+            return {"ui": {"text": [text]}, "result": (placeholder, text)}
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        filter_value = str(batch_or_chunk_filter).strip().lower()
+        for chunk in manifest.get("chunks", []):
+            batch_id = str(chunk.get("visual_batch_id") or "").lower()
+            chunk_id = str(chunk.get("chunk_id") or "").lower()
+            if filter_value and filter_value not in batch_id and filter_value not in chunk_id:
+                continue
+            for image_path_text in chunk.get("assigned_image_paths", []):
+                if len(tensors) >= int(max_images):
+                    break
+                image_path = Path(image_path_text)
+                if not image_path.exists():
+                    continue
+                tensors.append(_image_to_tensor(image_path))
+                entry = _image_ui_entry(image_path)
+                if entry:
+                    ui_images.append(entry)
+                lines.append(
+                    f"{chunk.get('chunk_id')} {_sec_to_hms(float(chunk.get('start_time', 0)))}-"
+                    f"{_sec_to_hms(float(chunk.get('end_time', 0)))} batch {chunk.get('visual_batch_id')}: {image_path.name}"
+                )
+            if len(tensors) >= int(max_images):
+                break
+
+        if not tensors:
+            placeholder = torch.zeros((1, 64, 64, 3), dtype=torch.float32)
+            text = f"No generated images matched filter '{batch_or_chunk_filter}' in {resolved_job_dir}."
+            return {"ui": {"text": [text]}, "result": (placeholder, text)}
+
+        # If image sizes differ, use Comfy-visible thumbnails in UI and return a stack resized by PIL.
+        first_h, first_w = tensors[0].shape[0], tensors[0].shape[1]
+        normalized: list[torch.Tensor] = []
+        for tensor in tensors:
+            if tensor.shape[0] == first_h and tensor.shape[1] == first_w:
+                normalized.append(tensor)
+                continue
+            pil = Image.fromarray((tensor.numpy() * 255).astype(np.uint8)).resize((first_w, first_h), Image.Resampling.LANCZOS)
+            normalized.append(torch.from_numpy(np.asarray(pil).astype(np.float32) / 255.0))
+
+        batch = torch.stack(normalized, dim=0)
+        text = "\n".join(lines)
+        ui: dict[str, object] = {"text": lines}
+        if ui_images:
+            ui["images"] = ui_images
+        return {"ui": ui, "result": (batch, text)}
+
+
 @PromptServer.instance.routes.get("/yvann_longform/jobs")
 async def get_jobs(_request):
     jobs = []
@@ -629,14 +810,18 @@ async def get_jobs(_request):
 
 NODE_CLASS_MAPPINGS = {
     "LongformYvannLauncher": LongformYvannLauncher,
+    "LongformYvannCueSheetParser": LongformYvannCueSheetParser,
     "LongformYvannCueSheetLauncher": LongformYvannCueSheetLauncher,
     "LongformYvannCueSheetBatchPlan": LongformYvannCueSheetBatchPlan,
     "LongformYvannJobStatus": LongformYvannJobStatus,
+    "LongformYvannGeneratedImagesOutput": LongformYvannGeneratedImagesOutput,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "LongformYvannLauncher": "Yvann Longform Launcher",
+    "LongformYvannCueSheetParser": "Yvann Cue Sheet Parser",
     "LongformYvannCueSheetLauncher": "Yvann Cue Sheet Batch Generator",
     "LongformYvannCueSheetBatchPlan": "Yvann Cue Sheet Batch Plan",
     "LongformYvannJobStatus": "Yvann Longform Job Status",
+    "LongformYvannGeneratedImagesOutput": "Yvann Generated Batch Images Output",
 }
