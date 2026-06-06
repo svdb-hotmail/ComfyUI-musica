@@ -82,9 +82,9 @@ class LongformYvannLauncher:
                     "STRING",
                     {"multiline": False, "default": "user/default/workflows/AudioReactive_ImagesToVideo_Yvann.json"},
                 ),
-                "chunk_duration_seconds": ("FLOAT", {"default": 15.0, "min": 1.0, "max": 3600.0, "step": 1.0}),
+                "chunk_duration_seconds": ("FLOAT", {"default": 45.0, "min": 1.0, "max": 3600.0, "step": 1.0}),
                 "overlap_seconds": ("FLOAT", {"default": 0.0, "min": 0.0, "max": 3599.0, "step": 1.0}),
-                "images_per_chunk": ("INT", {"default": 1, "min": 1, "max": 8, "step": 1}),
+                "images_per_chunk": ("INT", {"default": 4, "min": 1, "max": 8, "step": 1}),
                 "image_backend": ("STRING", {"multiline": False, "default": "comfy_api"}),
                 "continuity_mode": ("STRING", {"multiline": False, "default": "style"}),
                 "seed_strategy": ("STRING", {"multiline": False, "default": "derived"}),
@@ -95,7 +95,7 @@ class LongformYvannLauncher:
                 "final_concat": ("BOOLEAN", {"default": True}),
                 "yvann_render_fps": ("FLOAT", {"default": 8.0, "min": 1.0, "max": 60.0, "step": 1.0}),
                 "yvann_min_frames": ("INT", {"default": 24, "min": 8, "max": 1024, "step": 1}),
-                "yvann_max_frames": ("INT", {"default": 192, "min": 8, "max": 2048, "step": 1}),
+                "yvann_max_frames": ("INT", {"default": 480, "min": 8, "max": 2048, "step": 1}),
                 "max_chunks": ("INT", {"default": 0, "min": 0, "max": 100000, "step": 1}),
             }
         }

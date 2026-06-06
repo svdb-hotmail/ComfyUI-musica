@@ -15,7 +15,9 @@ This feature adds an additive long-form orchestration runner for Yvann "Images t
 
 - Validates environment (script/audio exists, ffmpeg/ffprobe, workflow template, custom nodes, API reachability).
 - Uses audio as timeline master and creates chunk boundaries with optional overlap.
-- Parses script and derives chunk-level scene summaries and prompts.
+- Parses script/cue sheets and derives chunk-level scene summaries and prompts.
+- Supports DJ-mix cue sheets with visual switch markers like `# A. 00:00:00 Rocket preparing for launch`.
+- Splits render chunks at visual marker timestamps so a chunk never crosses into the next visual batch.
 - Creates persistent job artifacts:
   - `job_config.json`
   - `job_state.json`
@@ -24,6 +26,7 @@ This feature adds an additive long-form orchestration runner for Yvann "Images t
 - Generates chunk images (backend selectable):
   - `comfy_api` (ComfyUI API text-to-image)
   - `procedural` (fallback deterministic abstract image generator)
+- Generates the configured number of images for each render batch and feeds them into the Yvann workflow `LoadImage` nodes.
 - Converts Yvann full workflow JSON to API format via `/workflow/convert`.
 - Injects chunk image/audio into `LoadImage` and `LoadAudio` nodes.
 - Scales Yvann render workload per chunk using `yvann_render_fps`, `yvann_min_frames`, and `yvann_max_frames`.
@@ -50,6 +53,25 @@ From ComfyUI root:
 
 ```bash
 python script_examples/longform_yvann_runner.py --config script_examples/longform_yvann_job_config.example.json
+```
+
+## Cue-sheet input format
+
+For long mixes, keep the music track list and add visual switch markers in comments:
+
+```text
+00:00:00  1 Artist - Track Title                  # A. 00:00:00 Rocket preparing for launch
+00:04:39  2 Artist - Next Track                   # B. 00:03:30 Rocket taking off, stage separation
+00:07:49  3 Artist - Another Track                #
+00:13:25  4 Artist - Later Track                  # C. 00:11:30 Satellite images of Earth and planets
+```
+
+The timestamp after the cue label controls when that visual batch starts. Continuation comment lines without a timestamp are appended to the previous visual batch prompt. The runner still renders in manageable chunks, but it splits at these visual switch timestamps and auto-generates images for each chunk from the active visual batch prompt.
+
+See:
+
+```text
+script_examples/longform_yvann_cuesheet.example.txt
 ```
 
 ## Apply the longform-modified base Yvann template

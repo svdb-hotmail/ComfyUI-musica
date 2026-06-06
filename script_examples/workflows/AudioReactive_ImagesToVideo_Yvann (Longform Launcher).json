@@ -1891,9 +1891,9 @@
         "abstract neon cyberpunk animation, glowing ribbon structures, tunnel geometry, cinematic volumetric light",
         "output/longform_yvann",
         "user/default/workflows/AudioReactive_ImagesToVideo_Yvann.json",
-        15.0,
+        45.0,
         0.0,
-        1,
+        4,
         "comfy_api",
         "style",
         "derived",
@@ -1904,7 +1904,7 @@
         true,
         8.0,
         24,
-        192,
+        480,
         0
       ],
       "color": "#253",
@@ -2266,7 +2266,7 @@
         "Node name for S&R": "PrimitiveFloat"
       },
       "widgets_values": [
-        15.0
+        45.0
       ]
     },
     {
@@ -2352,7 +2352,7 @@
         "Node name for S&R": "PrimitiveInt"
       },
       "widgets_values": [
-        1,
+        4,
         "fixed"
       ]
     },
@@ -2834,7 +2834,7 @@
         "Node name for S&R": "PrimitiveInt"
       },
       "widgets_values": [
-        192,
+        480,
         "fixed"
       ]
     },

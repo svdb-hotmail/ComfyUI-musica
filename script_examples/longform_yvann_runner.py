@@ -152,9 +152,27 @@ class Chunk:
     video_chunk_path: str
     status: str = "pending"
     error: str | None = None
+    visual_batch_id: str | None = None
+    visual_batch_start: float | None = None
+    visual_batch_end: float | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return dataclasses.asdict(self)
+
+
+@dataclasses.dataclass
+class VisualCue:
+    cue_id: str
+    start_time: float
+    end_time: float
+    summary: str
+
+    def overlaps(self, start: float, end: float) -> bool:
+        return not (self.end_time <= start or self.start_time >= end)
+
+    def contains_midpoint(self, start: float, end: float) -> bool:
+        midpoint = (start + end) * 0.5
+        return self.start_time <= midpoint < self.end_time
 
 
 class ComfyClient:
@@ -384,27 +402,92 @@ class LongformYvannRunner:
 
         return [x for x in out if x[1] > x[0]]
 
+    def _extract_visual_cues(self, script_text: str, total_duration: float) -> list[VisualCue]:
+        lines = [ln.rstrip() for ln in script_text.splitlines()]
+        marker_pattern = re.compile(
+            r"#\s*(?:(?P<label>[A-Z])\.\s*)?(?P<time>\d{1,2}:\d{2}:\d{2}(?:\.\d{1,3})?)\s*(?P<text>.*)$",
+            re.IGNORECASE,
+        )
+        continuation_pattern = re.compile(r"^\s*#\s*(?P<text>.+?)\s*$")
+
+        markers: list[tuple[str, float, list[str]]] = []
+        for line in lines:
+            marker = marker_pattern.search(line)
+            if marker:
+                label = (marker.group("label") or f"cue_{len(markers) + 1:02d}").upper()
+                start_time = hms_to_sec(marker.group("time"))
+                text = marker.group("text").strip()
+                markers.append((label, start_time, [text] if text else []))
+                continue
+
+            continuation = continuation_pattern.match(line)
+            if continuation and markers:
+                text = continuation.group("text").strip()
+                if text:
+                    markers[-1][2].append(text)
+
+        cues: list[VisualCue] = []
+        for idx, (label, start_time, parts) in enumerate(markers):
+            if start_time >= total_duration:
+                continue
+            next_start = total_duration
+            for _next_label, candidate_start, _next_parts in markers[idx + 1:]:
+                if candidate_start > start_time:
+                    next_start = min(candidate_start, total_duration)
+                    break
+            summary = " ".join(" ".join(parts).split())
+            if not summary:
+                continue
+            cues.append(
+                VisualCue(
+                    cue_id=label,
+                    start_time=max(0.0, start_time),
+                    end_time=max(start_time, next_start),
+                    summary=summary,
+                )
+            )
+
+        return [cue for cue in cues if cue.end_time > cue.start_time]
+
     def _split_sections(self, script_text: str) -> list[str]:
         blocks = [blk.strip() for blk in re.split(r"\n\s*\n", script_text) if blk.strip()]
         if not blocks:
             return ["Abstract visual storytelling progression."]
         return blocks
 
-    def _plan_chunk_boundaries(self, total_duration: float) -> list[tuple[float, float]]:
+    def _plan_chunk_boundaries(self, total_duration: float, split_points: list[float] | None = None) -> list[tuple[float, float]]:
         step = self.config.chunk_duration_seconds - self.config.overlap_seconds
+        cue_splits = sorted({round(p, 3) for p in (split_points or []) if 0.0 < p < total_duration})
         boundaries: list[tuple[float, float]] = []
         t = 0.0
         idx = 0
         while t < total_duration:
             end = min(total_duration, t + self.config.chunk_duration_seconds)
+            for split in cue_splits:
+                if t + 0.001 < split < end - 0.001:
+                    end = split
+                    break
             boundaries.append((t, end))
             idx += 1
             if self.config.max_chunks is not None and idx >= self.config.max_chunks:
                 break
             if end >= total_duration:
                 break
-            t += step
+            if any(abs(end - split) <= 0.001 for split in cue_splits):
+                t = end
+            else:
+                t += step
         return boundaries
+
+    @staticmethod
+    def _find_visual_cue(cues: list[VisualCue], start: float, end: float) -> VisualCue | None:
+        for cue in cues:
+            if cue.contains_midpoint(start, end):
+                return cue
+        for cue in cues:
+            if cue.overlaps(start, end):
+                return cue
+        return None
 
     def _energy_tag(self, frac: float) -> str:
         if frac < 0.2:
@@ -441,16 +524,21 @@ class LongformYvannRunner:
         script_text = self.load_script_text()
         audio_duration = self._audio_duration or self.get_audio_duration(self.audio_path)
 
+        visual_cues = self._extract_visual_cues(script_text, audio_duration)
         timed_sections = self._extract_timed_sections(script_text)
-        boundaries = self._plan_chunk_boundaries(audio_duration)
+        split_points = [cue.start_time for cue in visual_cues]
+        boundaries = self._plan_chunk_boundaries(audio_duration, split_points=split_points)
         sections = self._split_sections(script_text)
 
         chunks: list[Chunk] = []
         prev_summary: str | None = None
         for i, (start, end) in enumerate(boundaries, start=1):
             frac = ((start + end) * 0.5) / max(audio_duration, 1e-6)
+            visual_cue = self._find_visual_cue(visual_cues, start, end)
 
-            if timed_sections and self.config.segmentation_mode in {"auto", "timestamped"}:
+            if visual_cue and self.config.segmentation_mode in {"auto", "timestamped", "cue_sheet"}:
+                summary = visual_cue.summary
+            elif timed_sections and self.config.segmentation_mode in {"auto", "timestamped"}:
                 matching = [x[2] for x in timed_sections if not (x[1] <= start or x[0] >= end)]
                 summary = " ".join(matching).strip() or sections[min(i - 1, len(sections) - 1)]
             else:
@@ -458,6 +546,8 @@ class LongformYvannRunner:
                 summary = sections[section_idx]
 
             summary = " ".join(summary.split())
+            if visual_cue:
+                summary = f"Visual batch {visual_cue.cue_id}: {summary}"
             scene_prompt = self._build_prompt(summary, frac, prev_summary)
             prev_summary = summary
 
@@ -478,6 +568,9 @@ class LongformYvannRunner:
                 audio_chunk_path=str(self.audio_chunks_dir / f"{chunk_id}.wav"),
                 video_chunk_path=str(self.videos_dir / f"{chunk_id}.mp4"),
                 status="planned",
+                visual_batch_id=visual_cue.cue_id if visual_cue else None,
+                visual_batch_start=visual_cue.start_time if visual_cue else None,
+                visual_batch_end=visual_cue.end_time if visual_cue else None,
             )
             chunks.append(chunk)
 
