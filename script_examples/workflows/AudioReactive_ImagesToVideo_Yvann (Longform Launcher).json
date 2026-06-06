@@ -1,8 +1,8 @@
 {
   "id": "3e2107bc-1086-4449-88b6-1fe5e2879871",
   "revision": 0,
-  "last_node_id": 531,
-  "last_link_id": 1623,
+  "last_node_id": 552,
+  "last_link_id": 1644,
   "nodes": [
     {
       "id": 56,
@@ -1723,11 +1723,11 @@
       "type": "MarkdownNote",
       "pos": [
         -1455.5405058674485,
-        2435.2460889442655
+        2430.2460889442655
       ],
       "size": [
-        1000,
-        130
+        1080,
+        135
       ],
       "flags": {},
       "order": 28,
@@ -1737,7 +1737,7 @@
       "title": "LONGFORM JOB LAUNCHER",
       "properties": {},
       "widgets_values": [
-        "### Longform Script+Audio Runner (Wired)\nThis node is now an output node and runs when you queue this workflow.\nUse launch_now=false to temporarily disable longform launching while editing.\n\nSet:\n- script_path\n- audio_path\n- global_style_prompt\n- output_root\n- chunk_duration_seconds / overlap_seconds\n- max_chunks (0 = full audio)"
+        "### Longform Script+Audio Runner (fully wired)\nEdit the source value nodes on the left. They are visibly connected into the launcher node on the right.\nQueue this workflow to launch the longform job. Set launch_now=false to disable launching while editing."
       ],
       "color": "#223",
       "bgcolor": "#335"
@@ -1746,17 +1746,123 @@
       "id": 529,
       "type": "LongformYvannLauncher",
       "pos": [
-        -1455.5405058674485,
+        -935.5405058674485,
         2595.2460889442655
       ],
       "size": [
-        1000,
+        560,
         640
       ],
       "flags": {},
       "order": 29,
       "mode": 0,
-      "inputs": [],
+      "inputs": [
+        {
+          "name": "launch_now",
+          "type": "BOOLEAN",
+          "link": 1624
+        },
+        {
+          "name": "script_path",
+          "type": "STRING",
+          "link": 1625
+        },
+        {
+          "name": "audio_path",
+          "type": "STRING",
+          "link": 1626
+        },
+        {
+          "name": "global_style_prompt",
+          "type": "STRING",
+          "link": 1627
+        },
+        {
+          "name": "output_root",
+          "type": "STRING",
+          "link": 1628
+        },
+        {
+          "name": "workflow_template_path",
+          "type": "STRING",
+          "link": 1629
+        },
+        {
+          "name": "chunk_duration_seconds",
+          "type": "FLOAT",
+          "link": 1630
+        },
+        {
+          "name": "overlap_seconds",
+          "type": "FLOAT",
+          "link": 1631
+        },
+        {
+          "name": "images_per_chunk",
+          "type": "INT",
+          "link": 1632
+        },
+        {
+          "name": "image_backend",
+          "type": "STRING",
+          "link": 1633
+        },
+        {
+          "name": "continuity_mode",
+          "type": "STRING",
+          "link": 1634
+        },
+        {
+          "name": "seed_strategy",
+          "type": "STRING",
+          "link": 1635
+        },
+        {
+          "name": "base_seed",
+          "type": "INT",
+          "link": 1636
+        },
+        {
+          "name": "resume",
+          "type": "BOOLEAN",
+          "link": 1637
+        },
+        {
+          "name": "overwrite",
+          "type": "BOOLEAN",
+          "link": 1638
+        },
+        {
+          "name": "stop_on_failure",
+          "type": "BOOLEAN",
+          "link": 1639
+        },
+        {
+          "name": "final_concat",
+          "type": "BOOLEAN",
+          "link": 1640
+        },
+        {
+          "name": "yvann_render_fps",
+          "type": "FLOAT",
+          "link": 1641
+        },
+        {
+          "name": "yvann_min_frames",
+          "type": "INT",
+          "link": 1642
+        },
+        {
+          "name": "yvann_max_frames",
+          "type": "INT",
+          "link": 1643
+        },
+        {
+          "name": "max_chunks",
+          "type": "INT",
+          "link": 1644
+        }
+      ],
       "outputs": [
         {
           "name": "job_id",
@@ -1774,7 +1880,7 @@
           "links": []
         }
       ],
-      "title": "Launch Longform Yvann Job (Wired)",
+      "title": "Launch Longform Yvann Job (fully wired)",
       "properties": {
         "Node name for S&R": "LongformYvannLauncher"
       },
@@ -1808,11 +1914,11 @@
       "id": 530,
       "type": "MarkdownNote",
       "pos": [
-        -435.5405058674485,
+        -345.5405058674485,
         2595.2460889442655
       ],
       "size": [
-        600,
+        560,
         300
       ],
       "flags": {},
@@ -1832,12 +1938,12 @@
       "id": 531,
       "type": "MarkdownNote",
       "pos": [
-        -435.5405058674485,
-        2915.2460889442655
+        -345.5405058674485,
+        2925.2460889442655
       ],
       "size": [
-        600,
-        120
+        560,
+        145
       ],
       "flags": {},
       "order": 31,
@@ -1851,6 +1957,930 @@
       ],
       "color": "#432",
       "bgcolor": "#653"
+    },
+    {
+      "id": 532,
+      "type": "PrimitiveBoolean",
+      "pos": [
+        -1455.5405058674485,
+        2595.2460889442655
+      ],
+      "size": [
+        430,
+        70
+      ],
+      "flags": {},
+      "order": 32,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "BOOLEAN",
+          "name": "BOOLEAN",
+          "type": "BOOLEAN",
+          "links": [
+            1624
+          ]
+        }
+      ],
+      "title": "launch_now",
+      "properties": {
+        "Node name for S&R": "PrimitiveBoolean"
+      },
+      "widgets_values": [
+        true
+      ]
+    },
+    {
+      "id": 533,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        -1455.5405058674485,
+        2683.2460889442655
+      ],
+      "size": [
+        430,
+        96
+      ],
+      "flags": {},
+      "order": 33,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "STRING",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "STRING",
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            1625
+          ]
+        }
+      ],
+      "title": "script_path",
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "input/longform_script.txt",
+        "",
+        ""
+      ]
+    },
+    {
+      "id": 534,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        -1455.5405058674485,
+        2797.2460889442655
+      ],
+      "size": [
+        430,
+        96
+      ],
+      "flags": {},
+      "order": 34,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "STRING",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "STRING",
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            1626
+          ]
+        }
+      ],
+      "title": "audio_path",
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "input/Temple_of_the_Scales.mp3",
+        "",
+        ""
+      ]
+    },
+    {
+      "id": 535,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        -1455.5405058674485,
+        2911.2460889442655
+      ],
+      "size": [
+        430,
+        145
+      ],
+      "flags": {},
+      "order": 35,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "STRING",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "STRING",
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            1627
+          ]
+        }
+      ],
+      "title": "global_style_prompt",
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "abstract neon cyberpunk animation, glowing ribbon structures, tunnel geometry, cinematic volumetric light",
+        "",
+        ""
+      ]
+    },
+    {
+      "id": 536,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        -1455.5405058674485,
+        3074.2460889442655
+      ],
+      "size": [
+        430,
+        96
+      ],
+      "flags": {},
+      "order": 36,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "STRING",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "STRING",
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            1628
+          ]
+        }
+      ],
+      "title": "output_root",
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "output/longform_yvann",
+        "",
+        ""
+      ]
+    },
+    {
+      "id": 537,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        -1455.5405058674485,
+        3188.2460889442655
+      ],
+      "size": [
+        430,
+        96
+      ],
+      "flags": {},
+      "order": 37,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "STRING",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "STRING",
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            1629
+          ]
+        }
+      ],
+      "title": "workflow_template_path",
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "user/default/workflows/AudioReactive_ImagesToVideo_Yvann.json",
+        "",
+        ""
+      ]
+    },
+    {
+      "id": 538,
+      "type": "PrimitiveFloat",
+      "pos": [
+        -1455.5405058674485,
+        3302.2460889442655
+      ],
+      "size": [
+        430,
+        70
+      ],
+      "flags": {},
+      "order": 38,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "FLOAT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "FLOAT",
+          "name": "FLOAT",
+          "type": "FLOAT",
+          "links": [
+            1630
+          ]
+        }
+      ],
+      "title": "chunk_duration_seconds",
+      "properties": {
+        "Node name for S&R": "PrimitiveFloat"
+      },
+      "widgets_values": [
+        15.0
+      ]
+    },
+    {
+      "id": 539,
+      "type": "PrimitiveFloat",
+      "pos": [
+        -1455.5405058674485,
+        3390.2460889442655
+      ],
+      "size": [
+        430,
+        70
+      ],
+      "flags": {},
+      "order": 39,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "FLOAT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "FLOAT",
+          "name": "FLOAT",
+          "type": "FLOAT",
+          "links": [
+            1631
+          ]
+        }
+      ],
+      "title": "overlap_seconds",
+      "properties": {
+        "Node name for S&R": "PrimitiveFloat"
+      },
+      "widgets_values": [
+        0.0
+      ]
+    },
+    {
+      "id": 540,
+      "type": "PrimitiveInt",
+      "pos": [
+        -1455.5405058674485,
+        3478.2460889442655
+      ],
+      "size": [
+        430,
+        72
+      ],
+      "flags": {},
+      "order": 40,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "INT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "INT",
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            1632
+          ]
+        }
+      ],
+      "title": "images_per_chunk",
+      "properties": {
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        1,
+        "fixed"
+      ]
+    },
+    {
+      "id": 541,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        -1455.5405058674485,
+        3568.2460889442655
+      ],
+      "size": [
+        430,
+        96
+      ],
+      "flags": {},
+      "order": 41,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "STRING",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "STRING",
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            1633
+          ]
+        }
+      ],
+      "title": "image_backend",
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "comfy_api",
+        "",
+        ""
+      ]
+    },
+    {
+      "id": 542,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        -1455.5405058674485,
+        3682.2460889442655
+      ],
+      "size": [
+        430,
+        96
+      ],
+      "flags": {},
+      "order": 42,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "STRING",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "STRING",
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            1634
+          ]
+        }
+      ],
+      "title": "continuity_mode",
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "style",
+        "",
+        ""
+      ]
+    },
+    {
+      "id": 543,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        -1455.5405058674485,
+        3796.2460889442655
+      ],
+      "size": [
+        430,
+        96
+      ],
+      "flags": {},
+      "order": 43,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "STRING",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "STRING",
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            1635
+          ]
+        }
+      ],
+      "title": "seed_strategy",
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "derived",
+        "",
+        ""
+      ]
+    },
+    {
+      "id": 544,
+      "type": "PrimitiveInt",
+      "pos": [
+        -1455.5405058674485,
+        3910.2460889442655
+      ],
+      "size": [
+        430,
+        72
+      ],
+      "flags": {},
+      "order": 44,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "INT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "INT",
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            1636
+          ]
+        }
+      ],
+      "title": "base_seed",
+      "properties": {
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        42,
+        "fixed"
+      ]
+    },
+    {
+      "id": 545,
+      "type": "PrimitiveBoolean",
+      "pos": [
+        -1455.5405058674485,
+        4000.2460889442655
+      ],
+      "size": [
+        430,
+        70
+      ],
+      "flags": {},
+      "order": 45,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "BOOLEAN",
+          "name": "BOOLEAN",
+          "type": "BOOLEAN",
+          "links": [
+            1637
+          ]
+        }
+      ],
+      "title": "resume",
+      "properties": {
+        "Node name for S&R": "PrimitiveBoolean"
+      },
+      "widgets_values": [
+        true
+      ]
+    },
+    {
+      "id": 546,
+      "type": "PrimitiveBoolean",
+      "pos": [
+        -1455.5405058674485,
+        4088.2460889442655
+      ],
+      "size": [
+        430,
+        70
+      ],
+      "flags": {},
+      "order": 46,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "BOOLEAN",
+          "name": "BOOLEAN",
+          "type": "BOOLEAN",
+          "links": [
+            1638
+          ]
+        }
+      ],
+      "title": "overwrite",
+      "properties": {
+        "Node name for S&R": "PrimitiveBoolean"
+      },
+      "widgets_values": [
+        false
+      ]
+    },
+    {
+      "id": 547,
+      "type": "PrimitiveBoolean",
+      "pos": [
+        -1455.5405058674485,
+        4176.2460889442655
+      ],
+      "size": [
+        430,
+        70
+      ],
+      "flags": {},
+      "order": 47,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "BOOLEAN",
+          "name": "BOOLEAN",
+          "type": "BOOLEAN",
+          "links": [
+            1639
+          ]
+        }
+      ],
+      "title": "stop_on_failure",
+      "properties": {
+        "Node name for S&R": "PrimitiveBoolean"
+      },
+      "widgets_values": [
+        false
+      ]
+    },
+    {
+      "id": 548,
+      "type": "PrimitiveBoolean",
+      "pos": [
+        -1455.5405058674485,
+        4264.2460889442655
+      ],
+      "size": [
+        430,
+        70
+      ],
+      "flags": {},
+      "order": 48,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "BOOLEAN",
+          "name": "BOOLEAN",
+          "type": "BOOLEAN",
+          "links": [
+            1640
+          ]
+        }
+      ],
+      "title": "final_concat",
+      "properties": {
+        "Node name for S&R": "PrimitiveBoolean"
+      },
+      "widgets_values": [
+        true
+      ]
+    },
+    {
+      "id": 549,
+      "type": "PrimitiveFloat",
+      "pos": [
+        -1455.5405058674485,
+        4352.2460889442655
+      ],
+      "size": [
+        430,
+        70
+      ],
+      "flags": {},
+      "order": 49,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "FLOAT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "FLOAT",
+          "name": "FLOAT",
+          "type": "FLOAT",
+          "links": [
+            1641
+          ]
+        }
+      ],
+      "title": "yvann_render_fps",
+      "properties": {
+        "Node name for S&R": "PrimitiveFloat"
+      },
+      "widgets_values": [
+        8.0
+      ]
+    },
+    {
+      "id": 550,
+      "type": "PrimitiveInt",
+      "pos": [
+        -1455.5405058674485,
+        4440.2460889442655
+      ],
+      "size": [
+        430,
+        72
+      ],
+      "flags": {},
+      "order": 50,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "INT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "INT",
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            1642
+          ]
+        }
+      ],
+      "title": "yvann_min_frames",
+      "properties": {
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        24,
+        "fixed"
+      ]
+    },
+    {
+      "id": 551,
+      "type": "PrimitiveInt",
+      "pos": [
+        -1455.5405058674485,
+        4530.2460889442655
+      ],
+      "size": [
+        430,
+        72
+      ],
+      "flags": {},
+      "order": 51,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "INT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "INT",
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            1643
+          ]
+        }
+      ],
+      "title": "yvann_max_frames",
+      "properties": {
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        192,
+        "fixed"
+      ]
+    },
+    {
+      "id": 552,
+      "type": "PrimitiveInt",
+      "pos": [
+        -1455.5405058674485,
+        4620.2460889442655
+      ],
+      "size": [
+        430,
+        72
+      ],
+      "flags": {},
+      "order": 52,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "INT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "INT",
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            1644
+          ]
+        }
+      ],
+      "title": "max_chunks",
+      "properties": {
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        0,
+        "fixed"
+      ]
     }
   ],
   "links": [
@@ -2285,6 +3315,174 @@
       515,
       0,
       "IMAGE"
+    ],
+    [
+      1624,
+      532,
+      0,
+      529,
+      0,
+      "BOOLEAN"
+    ],
+    [
+      1625,
+      533,
+      0,
+      529,
+      1,
+      "STRING"
+    ],
+    [
+      1626,
+      534,
+      0,
+      529,
+      2,
+      "STRING"
+    ],
+    [
+      1627,
+      535,
+      0,
+      529,
+      3,
+      "STRING"
+    ],
+    [
+      1628,
+      536,
+      0,
+      529,
+      4,
+      "STRING"
+    ],
+    [
+      1629,
+      537,
+      0,
+      529,
+      5,
+      "STRING"
+    ],
+    [
+      1630,
+      538,
+      0,
+      529,
+      6,
+      "FLOAT"
+    ],
+    [
+      1631,
+      539,
+      0,
+      529,
+      7,
+      "FLOAT"
+    ],
+    [
+      1632,
+      540,
+      0,
+      529,
+      8,
+      "INT"
+    ],
+    [
+      1633,
+      541,
+      0,
+      529,
+      9,
+      "STRING"
+    ],
+    [
+      1634,
+      542,
+      0,
+      529,
+      10,
+      "STRING"
+    ],
+    [
+      1635,
+      543,
+      0,
+      529,
+      11,
+      "STRING"
+    ],
+    [
+      1636,
+      544,
+      0,
+      529,
+      12,
+      "INT"
+    ],
+    [
+      1637,
+      545,
+      0,
+      529,
+      13,
+      "BOOLEAN"
+    ],
+    [
+      1638,
+      546,
+      0,
+      529,
+      14,
+      "BOOLEAN"
+    ],
+    [
+      1639,
+      547,
+      0,
+      529,
+      15,
+      "BOOLEAN"
+    ],
+    [
+      1640,
+      548,
+      0,
+      529,
+      16,
+      "BOOLEAN"
+    ],
+    [
+      1641,
+      549,
+      0,
+      529,
+      17,
+      "FLOAT"
+    ],
+    [
+      1642,
+      550,
+      0,
+      529,
+      18,
+      "INT"
+    ],
+    [
+      1643,
+      551,
+      0,
+      529,
+      19,
+      "INT"
+    ],
+    [
+      1644,
+      552,
+      0,
+      529,
+      20,
+      "INT"
     ]
   ],
   "groups": [],
