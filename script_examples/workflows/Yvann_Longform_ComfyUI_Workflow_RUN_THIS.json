@@ -390,7 +390,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            7013
+            7012
           ]
         }
       ],
@@ -435,7 +435,7 @@
           "name": "INT",
           "type": "INT",
           "links": [
-            7014
+            7013
           ]
         }
       ],
@@ -479,7 +479,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            7015
+            7014
           ]
         }
       ],
@@ -522,7 +522,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            7016
+            7015
           ]
         }
       ],
@@ -565,7 +565,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            7017
+            7016
           ]
         }
       ],
@@ -608,7 +608,7 @@
           "name": "FLOAT",
           "type": "FLOAT",
           "links": [
-            7018
+            7017
           ]
         }
       ],
@@ -617,7 +617,7 @@
         "Node name for S&R": "PrimitiveFloat"
       },
       "widgets_values": [
-        8.0
+        12.0
       ]
     },
     {
@@ -651,7 +651,7 @@
           "name": "INT",
           "type": "INT",
           "links": [
-            7019
+            7018
           ]
         }
       ],
@@ -660,7 +660,7 @@
         "Node name for S&R": "PrimitiveInt"
       },
       "widgets_values": [
-        480,
+        720,
         "fixed"
       ]
     },
@@ -695,7 +695,8 @@
           "name": "INT",
           "type": "INT",
           "links": [
-            2003
+            2003,
+            7019
           ]
         }
       ],
@@ -848,6 +849,11 @@
           "link": 7008
         },
         {
+          "name": "render_profile",
+          "type": "COMBO",
+          "link": null
+        },
+        {
           "name": "image_interval_seconds",
           "type": "FLOAT",
           "link": 7009
@@ -944,16 +950,17 @@
         "output/longform_yvann",
         "user/default/workflows/AudioReactive_ImagesToVideo_Yvann.json",
         45.0,
-        5.0,
-        848,
-        480,
+        "dj_final",
+        4.0,
+        1280,
+        720,
         "comfy_api",
         42,
         true,
         false,
         true,
-        8.0,
-        480,
+        12.0,
+        720,
         0
       ]
     },
@@ -1282,8 +1289,7 @@
           "name": "FLOAT",
           "type": "FLOAT",
           "links": [
-            7009,
-            7012
+            7009
           ]
         }
       ],
@@ -1292,7 +1298,7 @@
         "Node name for S&R": "PrimitiveFloat"
       },
       "widgets_values": [
-        5.0
+        4.0
       ]
     },
     {
@@ -1330,12 +1336,12 @@
           ]
         }
       ],
-      "title": "render_width (848 for 16:9 480p)",
+      "title": "render_width (1280 dj final / 848 preview)",
       "properties": {
         "Node name for S&R": "PrimitiveInt"
       },
       "widgets_values": [
-        848,
+        1280,
         "fixed"
       ]
     },
@@ -1374,12 +1380,12 @@
           ]
         }
       ],
-      "title": "render_height (480p)",
+      "title": "render_height (720 dj final / 480 preview)",
       "properties": {
         "Node name for S&R": "PrimitiveInt"
       },
       "widgets_values": [
-        480,
+        720,
         "fixed"
       ]
     }
@@ -1558,7 +1564,7 @@
       110,
       0,
       100,
-      7,
+      8,
       "FLOAT"
     ],
     [
@@ -1566,7 +1572,7 @@
       111,
       0,
       100,
-      8,
+      9,
       "INT"
     ],
     [
@@ -1574,71 +1580,71 @@
       112,
       0,
       100,
-      9,
+      10,
       "INT"
     ],
     [
       7012,
-      110,
+      10,
       0,
       100,
-      10,
+      11,
       "STRING"
     ],
     [
       7013,
-      10,
+      11,
       0,
       100,
-      11,
+      12,
       "INT"
     ],
     [
       7014,
-      11,
+      12,
       0,
       100,
-      12,
+      13,
       "BOOLEAN"
     ],
     [
       7015,
-      12,
+      13,
       0,
       100,
-      13,
+      14,
       "BOOLEAN"
     ],
     [
       7016,
-      13,
+      14,
       0,
       100,
-      14,
+      15,
       "BOOLEAN"
     ],
     [
       7017,
-      14,
+      15,
       0,
       100,
-      15,
+      16,
       "FLOAT"
     ],
     [
       7018,
-      15,
-      0,
-      100,
-      16,
-      "INT"
-    ],
-    [
-      7019,
       16,
       0,
       100,
       17,
+      "INT"
+    ],
+    [
+      7019,
+      17,
+      0,
+      100,
+      18,
       "INT"
     ]
   ],
