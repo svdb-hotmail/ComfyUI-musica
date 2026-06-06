@@ -1,8 +1,8 @@
 {
   "id": "3e2107bc-1086-4449-88b6-1fe5e2879871",
   "revision": 0,
-  "last_node_id": 552,
-  "last_link_id": 1644,
+  "last_node_id": 555,
+  "last_link_id": 1646,
   "nodes": [
     {
       "id": 56,
@@ -917,8 +917,8 @@
       },
       "widgets_values": [
         50,
-        384,
-        384,
+        848,
+        480,
         16
       ]
     },
@@ -1799,64 +1799,79 @@
           "link": 1631
         },
         {
+          "name": "image_interval_seconds",
+          "type": "FLOAT",
+          "link": 1632
+        },
+        {
+          "name": "render_width",
+          "type": "INT",
+          "link": 1633
+        },
+        {
+          "name": "render_height",
+          "type": "INT",
+          "link": 1634
+        },
+        {
           "name": "image_backend",
           "type": "STRING",
-          "link": 1633
+          "link": 1635
         },
         {
           "name": "continuity_mode",
           "type": "STRING",
-          "link": 1633
+          "link": 1636
         },
         {
           "name": "seed_strategy",
           "type": "STRING",
-          "link": 1634
+          "link": 1637
         },
         {
           "name": "base_seed",
           "type": "INT",
-          "link": 1635
+          "link": 1638
         },
         {
           "name": "resume",
           "type": "BOOLEAN",
-          "link": 1636
+          "link": 1639
         },
         {
           "name": "overwrite",
           "type": "BOOLEAN",
-          "link": 1637
+          "link": 1640
         },
         {
           "name": "stop_on_failure",
           "type": "BOOLEAN",
-          "link": 1638
+          "link": 1641
         },
         {
           "name": "final_concat",
           "type": "BOOLEAN",
-          "link": 1639
+          "link": 1642
         },
         {
           "name": "yvann_render_fps",
           "type": "FLOAT",
-          "link": 1640
+          "link": 1643
         },
         {
           "name": "yvann_min_frames",
           "type": "INT",
-          "link": 1641
+          "link": 1644
         },
         {
           "name": "yvann_max_frames",
           "type": "INT",
-          "link": 1642
+          "link": 1645
         },
         {
           "name": "max_chunks",
           "type": "INT",
-          "link": 1643
+          "link": 1646
         }
       ],
       "outputs": [
@@ -1889,6 +1904,9 @@
         "user/default/workflows/AudioReactive_ImagesToVideo_Yvann.json",
         45.0,
         0.0,
+        5.0,
+        848,
+        480,
         "comfy_api",
         "style",
         "derived",
@@ -2338,7 +2356,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            1633
+            1635
           ]
         }
       ],
@@ -2383,7 +2401,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            1634
+            1636
           ]
         }
       ],
@@ -2428,7 +2446,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            1635
+            1637
           ]
         }
       ],
@@ -2473,7 +2491,7 @@
           "name": "INT",
           "type": "INT",
           "links": [
-            1636
+            1638
           ]
         }
       ],
@@ -2517,7 +2535,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            1637
+            1639
           ]
         }
       ],
@@ -2560,7 +2578,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            1638
+            1640
           ]
         }
       ],
@@ -2603,7 +2621,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            1639
+            1641
           ]
         }
       ],
@@ -2646,7 +2664,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            1640
+            1642
           ]
         }
       ],
@@ -2689,7 +2707,7 @@
           "name": "FLOAT",
           "type": "FLOAT",
           "links": [
-            1641
+            1643
           ]
         }
       ],
@@ -2732,7 +2750,7 @@
           "name": "INT",
           "type": "INT",
           "links": [
-            1642
+            1644
           ]
         }
       ],
@@ -2776,7 +2794,7 @@
           "name": "INT",
           "type": "INT",
           "links": [
-            1643
+            1645
           ]
         }
       ],
@@ -2820,7 +2838,7 @@
           "name": "INT",
           "type": "INT",
           "links": [
-            1644
+            1646
           ]
         }
       ],
@@ -2831,6 +2849,137 @@
       "widgets_values": [
         0,
         "fixed"
+      ]
+    },
+    {
+      "id": 553,
+      "type": "PrimitiveInt",
+      "pos": [
+        -2660,
+        247.21354166666669
+      ],
+      "size": [
+        300,
+        82
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "INT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "INT",
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            1633
+          ]
+        }
+      ],
+      "title": "render_width (848 for 16:9 480p)",
+      "properties": {
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        848,
+        "fixed"
+      ]
+    },
+    {
+      "id": 554,
+      "type": "PrimitiveInt",
+      "pos": [
+        -2660,
+        357.2135416666667
+      ],
+      "size": [
+        300,
+        82
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "INT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "INT",
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            1634
+          ]
+        }
+      ],
+      "title": "render_height (480p)",
+      "properties": {
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        480,
+        "fixed"
+      ]
+    },
+    {
+      "id": 555,
+      "type": "PrimitiveFloat",
+      "pos": [
+        -2660,
+        577.2135416666667
+      ],
+      "size": [
+        300,
+        70
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "FLOAT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "FLOAT",
+          "name": "FLOAT",
+          "type": "FLOAT",
+          "links": [
+            1632
+          ]
+        }
+      ],
+      "title": "image_interval_seconds",
+      "properties": {
+        "Node name for S&R": "PrimitiveFloat"
+      },
+      "widgets_values": [
+        5.0
       ]
     }
   ],
@@ -3300,24 +3449,32 @@
       "FLOAT"
     ],
     [
+      1632,
+      555,
+      0,
+      529,
+      8,
+      "FLOAT"
+    ],
+    [
       1633,
-      541,
+      553,
       0,
       529,
       9,
-      "STRING"
+      "INT"
     ],
     [
       1634,
-      542,
+      554,
       0,
       529,
       10,
-      "STRING"
+      "INT"
     ],
     [
       1635,
-      543,
+      541,
       0,
       529,
       11,
@@ -3325,31 +3482,31 @@
     ],
     [
       1636,
-      544,
+      542,
       0,
       529,
       12,
-      "INT"
+      "STRING"
     ],
     [
       1637,
-      545,
+      543,
       0,
       529,
       13,
-      "BOOLEAN"
+      "STRING"
     ],
     [
       1638,
-      546,
+      544,
       0,
       529,
       14,
-      "BOOLEAN"
+      "INT"
     ],
     [
       1639,
-      547,
+      545,
       0,
       529,
       15,
@@ -3357,7 +3514,7 @@
     ],
     [
       1640,
-      548,
+      546,
       0,
       529,
       16,
@@ -3365,34 +3522,50 @@
     ],
     [
       1641,
-      549,
+      547,
       0,
       529,
       17,
-      "FLOAT"
+      "BOOLEAN"
     ],
     [
       1642,
-      550,
+      548,
       0,
       529,
       18,
-      "INT"
+      "BOOLEAN"
     ],
     [
       1643,
-      551,
+      549,
       0,
       529,
       19,
-      "INT"
+      "FLOAT"
     ],
     [
       1644,
-      552,
+      550,
       0,
       529,
       20,
+      "INT"
+    ],
+    [
+      1645,
+      551,
+      0,
+      529,
+      21,
+      "INT"
+    ],
+    [
+      1646,
+      552,
+      0,
+      529,
+      22,
       "INT"
     ]
   ],

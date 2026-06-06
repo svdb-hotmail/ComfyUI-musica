@@ -1,8 +1,8 @@
 {
   "id": "yvann-longform-comfyui-workflow-run-this",
   "revision": 0,
-  "last_node_id": 110,
-  "last_link_id": 7002,
+  "last_node_id": 112,
+  "last_link_id": 7019,
   "nodes": [
     {
       "id": 1,
@@ -62,7 +62,7 @@
           "name": "cue_sheet_text",
           "type": "STRING",
           "links": [
-            2004
+            7003
           ]
         },
         {
@@ -118,7 +118,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            3001
+            7002
           ]
         }
       ],
@@ -162,8 +162,8 @@
           "type": "STRING",
           "links": [
             2001,
-            3002,
-            6001
+            6001,
+            7004
           ]
         }
       ],
@@ -208,7 +208,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            3003
+            7005
           ]
         }
       ],
@@ -253,9 +253,9 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            3004,
             5002,
-            5005
+            5005,
+            7006
           ]
         }
       ],
@@ -300,8 +300,8 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            3005,
-            7001
+            7001,
+            7007
           ]
         }
       ],
@@ -347,7 +347,7 @@
           "type": "FLOAT",
           "links": [
             2002,
-            3006
+            7008
           ]
         }
       ],
@@ -390,7 +390,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            3008
+            7013
           ]
         }
       ],
@@ -435,7 +435,7 @@
           "name": "INT",
           "type": "INT",
           "links": [
-            3009
+            7014
           ]
         }
       ],
@@ -479,7 +479,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            3010
+            7015
           ]
         }
       ],
@@ -522,7 +522,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            3011
+            7016
           ]
         }
       ],
@@ -565,7 +565,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            3012
+            7017
           ]
         }
       ],
@@ -608,7 +608,7 @@
           "name": "FLOAT",
           "type": "FLOAT",
           "links": [
-            3013
+            7018
           ]
         }
       ],
@@ -651,7 +651,7 @@
           "name": "INT",
           "type": "INT",
           "links": [
-            3014
+            7019
           ]
         }
       ],
@@ -695,8 +695,7 @@
           "name": "INT",
           "type": "INT",
           "links": [
-            2003,
-            3015
+            2003
           ]
         }
       ],
@@ -816,82 +815,97 @@
         {
           "name": "launch_now",
           "type": "BOOLEAN",
-          "link": 3001
+          "link": 7002
         },
         {
           "name": "cue_sheet_text",
           "type": "STRING",
-          "link": 2004
+          "link": 7003
         },
         {
           "name": "audio_path",
           "type": "STRING",
-          "link": 3002
+          "link": 7004
         },
         {
           "name": "global_style_prompt",
           "type": "STRING",
-          "link": 3003
+          "link": 7005
         },
         {
           "name": "output_root",
           "type": "STRING",
-          "link": 3004
+          "link": 7006
         },
         {
           "name": "yvann_workflow_path",
           "type": "STRING",
-          "link": 3005
+          "link": 7007
         },
         {
           "name": "chunk_duration_seconds",
           "type": "FLOAT",
-          "link": 3006
+          "link": 7008
         },
         {
           "name": "image_interval_seconds",
           "type": "FLOAT",
-          "link": 7002
+          "link": 7009
+        },
+        {
+          "name": "render_width",
+          "type": "INT",
+          "link": 7010
+        },
+        {
+          "name": "render_height",
+          "type": "INT",
+          "link": 7011
         },
         {
           "name": "image_backend",
           "type": "STRING",
-          "link": 7002
+          "link": 7012
         },
         {
           "name": "base_seed",
           "type": "INT",
-          "link": 3008
+          "link": 7013
         },
         {
           "name": "resume",
           "type": "BOOLEAN",
-          "link": 3009
+          "link": 7014
         },
         {
           "name": "overwrite",
           "type": "BOOLEAN",
-          "link": 3010
+          "link": 7015
         },
         {
           "name": "final_concat",
           "type": "BOOLEAN",
-          "link": 3011
+          "link": 7016
         },
         {
           "name": "yvann_render_fps",
           "type": "FLOAT",
-          "link": 3012
+          "link": 7017
         },
         {
           "name": "yvann_max_frames",
           "type": "INT",
-          "link": 3013
+          "link": 7018
         },
         {
           "name": "max_chunks",
           "type": "INT",
-          "link": 3014
+          "link": 7019
+        },
+        {
+          "name": "uploaded_audio",
+          "type": "AUDIO",
+          "link": null
         }
       ],
       "outputs": [
@@ -931,6 +945,8 @@
         "user/default/workflows/AudioReactive_ImagesToVideo_Yvann.json",
         45.0,
         5.0,
+        848,
+        480,
         "comfy_api",
         42,
         true,
@@ -1266,7 +1282,8 @@
           "name": "FLOAT",
           "type": "FLOAT",
           "links": [
-            7002
+            7009,
+            7012
           ]
         }
       ],
@@ -1276,6 +1293,94 @@
       },
       "widgets_values": [
         5.0
+      ]
+    },
+    {
+      "id": 111,
+      "type": "PrimitiveInt",
+      "pos": [
+        -440,
+        1120
+      ],
+      "size": [
+        300,
+        82
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "INT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "INT",
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            7010
+          ]
+        }
+      ],
+      "title": "render_width (848 for 16:9 480p)",
+      "properties": {
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        848,
+        "fixed"
+      ]
+    },
+    {
+      "id": 112,
+      "type": "PrimitiveInt",
+      "pos": [
+        -440,
+        1230
+      ],
+      "size": [
+        300,
+        82
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "INT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "INT",
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            7011
+          ]
+        }
+      ],
+      "title": "render_height (480p)",
+      "properties": {
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        480,
+        "fixed"
       ]
     }
   ],
@@ -1302,126 +1407,6 @@
       0,
       50,
       2,
-      "INT"
-    ],
-    [
-      3001,
-      2,
-      0,
-      100,
-      0,
-      "BOOLEAN"
-    ],
-    [
-      2004,
-      50,
-      0,
-      100,
-      1,
-      "STRING"
-    ],
-    [
-      3002,
-      4,
-      0,
-      100,
-      2,
-      "STRING"
-    ],
-    [
-      3003,
-      5,
-      0,
-      100,
-      3,
-      "STRING"
-    ],
-    [
-      3004,
-      6,
-      0,
-      100,
-      4,
-      "STRING"
-    ],
-    [
-      3005,
-      7,
-      0,
-      100,
-      5,
-      "STRING"
-    ],
-    [
-      3006,
-      8,
-      0,
-      100,
-      6,
-      "FLOAT"
-    ],
-    [
-      3008,
-      10,
-      0,
-      100,
-      9,
-      "STRING"
-    ],
-    [
-      3009,
-      11,
-      0,
-      100,
-      10,
-      "INT"
-    ],
-    [
-      3010,
-      12,
-      0,
-      100,
-      11,
-      "BOOLEAN"
-    ],
-    [
-      3011,
-      13,
-      0,
-      100,
-      12,
-      "BOOLEAN"
-    ],
-    [
-      3012,
-      14,
-      0,
-      100,
-      13,
-      "BOOLEAN"
-    ],
-    [
-      3013,
-      15,
-      0,
-      100,
-      14,
-      "FLOAT"
-    ],
-    [
-      3014,
-      16,
-      0,
-      100,
-      15,
-      "INT"
-    ],
-    [
-      3015,
-      17,
-      0,
-      100,
-      16,
       "INT"
     ],
     [
@@ -1514,11 +1499,147 @@
     ],
     [
       7002,
+      2,
+      0,
+      100,
+      0,
+      "BOOLEAN"
+    ],
+    [
+      7003,
+      50,
+      0,
+      100,
+      1,
+      "STRING"
+    ],
+    [
+      7004,
+      4,
+      0,
+      100,
+      2,
+      "STRING"
+    ],
+    [
+      7005,
+      5,
+      0,
+      100,
+      3,
+      "STRING"
+    ],
+    [
+      7006,
+      6,
+      0,
+      100,
+      4,
+      "STRING"
+    ],
+    [
+      7007,
+      7,
+      0,
+      100,
+      5,
+      "STRING"
+    ],
+    [
+      7008,
+      8,
+      0,
+      100,
+      6,
+      "FLOAT"
+    ],
+    [
+      7009,
       110,
       0,
       100,
-      8,
+      7,
       "FLOAT"
+    ],
+    [
+      7010,
+      111,
+      0,
+      100,
+      8,
+      "INT"
+    ],
+    [
+      7011,
+      112,
+      0,
+      100,
+      9,
+      "INT"
+    ],
+    [
+      7012,
+      110,
+      0,
+      100,
+      10,
+      "STRING"
+    ],
+    [
+      7013,
+      10,
+      0,
+      100,
+      11,
+      "INT"
+    ],
+    [
+      7014,
+      11,
+      0,
+      100,
+      12,
+      "BOOLEAN"
+    ],
+    [
+      7015,
+      12,
+      0,
+      100,
+      13,
+      "BOOLEAN"
+    ],
+    [
+      7016,
+      13,
+      0,
+      100,
+      14,
+      "BOOLEAN"
+    ],
+    [
+      7017,
+      14,
+      0,
+      100,
+      15,
+      "FLOAT"
+    ],
+    [
+      7018,
+      15,
+      0,
+      100,
+      16,
+      "INT"
+    ],
+    [
+      7019,
+      16,
+      0,
+      100,
+      17,
+      "INT"
     ]
   ],
   "groups": [],

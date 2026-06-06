@@ -779,6 +779,8 @@ class LongformYvannRunner:
     def _generate_comfy_t2i_image(self, prompt: str, negative_prompt: str, seed: int) -> Path:
         # Minimal API prompt image generation workflow.
         out_prefix = f"longform_yvann/t2i/{self.job_id}/seed_{seed}"
+        latent_width = self._vae_safe_dimension(self.config.image_width)
+        latent_height = self._vae_safe_dimension(self.config.image_height)
         api_prompt = {
             "3": {
                 "class_type": "KSampler",
@@ -802,8 +804,8 @@ class LongformYvannRunner:
             "5": {
                 "class_type": "EmptyLatentImage",
                 "inputs": {
-                    "width": int(self.config.image_width),
-                    "height": int(self.config.image_height),
+                    "width": latent_width,
+                    "height": latent_height,
                     "batch_size": 1,
                 },
             },
@@ -1038,6 +1040,8 @@ class LongformYvannRunner:
         # Derive practical per-chunk frame settings for long-form processing.
         target_frames = int(round(chunk.chunk_duration * self.config.yvann_render_fps))
         target_frames = max(self.config.yvann_min_frames, min(target_frames, self.config.yvann_max_frames))
+        target_width = self._vae_safe_dimension(self.config.image_width)
+        target_height = self._vae_safe_dimension(self.config.image_height)
         for nid, node in prompt.items():
             ct = node.get("class_type")
             inputs = node.setdefault("inputs", {})
@@ -1045,6 +1049,10 @@ class LongformYvannRunner:
             if ct == "INTConstant" and "frame" in title and isinstance(inputs.get("value"), int):
                 # Workflow group constants use this for animation batch size.
                 inputs["value"] = target_frames
+            if ct == "INTConstant" and "width" in title and isinstance(inputs.get("value"), int):
+                inputs["value"] = target_width
+            if ct == "INTConstant" and "height" in title and isinstance(inputs.get("value"), int):
+                inputs["value"] = target_height
             if ct == "FloatConstant" and "frame" in title and isinstance(inputs.get("value"), (int, float)):
                 # Workflow group constants use this for frame rate.
                 inputs["value"] = float(self.config.yvann_render_fps)

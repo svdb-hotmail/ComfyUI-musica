@@ -1,8 +1,8 @@
 {
   "id": "yvann-longform-all-in-one-2h-video-workflow",
   "revision": 0,
-  "last_node_id": 732,
-  "last_link_id": 8521,
+  "last_node_id": 734,
+  "last_link_id": 8522,
   "nodes": [
     {
       "id": 56,
@@ -919,8 +919,8 @@
       },
       "widgets_values": [
         50,
-        384,
-        384,
+        848,
+        480,
         16
       ]
     },
@@ -1766,7 +1766,7 @@
           "type": "AUDIO",
           "links": [
             8101,
-            8521
+            8522
           ]
         }
       ],
@@ -1842,7 +1842,7 @@
           "name": "cue_sheet_text",
           "type": "STRING",
           "links": [
-            8506
+            8505
           ]
         },
         {
@@ -1898,7 +1898,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            8505
+            8504
           ]
         }
       ],
@@ -1942,7 +1942,7 @@
           "type": "STRING",
           "links": [
             8110,
-            8507
+            8506
           ]
         }
       ],
@@ -1987,7 +1987,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            8508
+            8507
           ]
         }
       ],
@@ -2035,7 +2035,7 @@
             8402,
             8403,
             8502,
-            8509
+            8508
           ]
         }
       ],
@@ -2081,7 +2081,7 @@
           "type": "STRING",
           "links": [
             8406,
-            8510
+            8509
           ]
         }
       ],
@@ -2127,7 +2127,7 @@
           "type": "FLOAT",
           "links": [
             8111,
-            8511
+            8510
           ]
         }
       ],
@@ -2170,7 +2170,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            8513
+            8514
           ]
         }
       ],
@@ -2215,7 +2215,7 @@
           "name": "INT",
           "type": "INT",
           "links": [
-            8514
+            8515
           ]
         }
       ],
@@ -2259,7 +2259,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            8515
+            8516
           ]
         }
       ],
@@ -2302,7 +2302,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            8516
+            8517
           ]
         }
       ],
@@ -2345,7 +2345,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            8517
+            8518
           ]
         }
       ],
@@ -2388,7 +2388,7 @@
           "name": "FLOAT",
           "type": "FLOAT",
           "links": [
-            8518
+            8519
           ]
         }
       ],
@@ -2431,7 +2431,7 @@
           "name": "INT",
           "type": "INT",
           "links": [
-            8519
+            8520
           ]
         }
       ],
@@ -2476,7 +2476,7 @@
           "type": "INT",
           "links": [
             8112,
-            8520
+            8521
           ]
         }
       ],
@@ -2597,87 +2597,97 @@
         {
           "name": "launch_now",
           "type": "BOOLEAN",
-          "link": 8505
+          "link": 8504
         },
         {
           "name": "cue_sheet_text",
           "type": "STRING",
-          "link": 8506
+          "link": 8505
         },
         {
           "name": "audio_path",
           "type": "STRING",
-          "link": 8507
+          "link": 8506
         },
         {
           "name": "global_style_prompt",
           "type": "STRING",
-          "link": 8508
+          "link": 8507
         },
         {
           "name": "output_root",
           "type": "STRING",
-          "link": 8509
+          "link": 8508
         },
         {
           "name": "yvann_workflow_path",
           "type": "STRING",
-          "link": 8510
+          "link": 8509
         },
         {
           "name": "chunk_duration_seconds",
           "type": "FLOAT",
-          "link": 8511
+          "link": 8510
         },
         {
           "name": "image_interval_seconds",
           "type": "FLOAT",
+          "link": 8511
+        },
+        {
+          "name": "render_width",
+          "type": "INT",
           "link": 8512
+        },
+        {
+          "name": "render_height",
+          "type": "INT",
+          "link": 8513
         },
         {
           "name": "image_backend",
           "type": "STRING",
-          "link": 8513
+          "link": 8514
         },
         {
           "name": "base_seed",
           "type": "INT",
-          "link": 8514
+          "link": 8515
         },
         {
           "name": "resume",
           "type": "BOOLEAN",
-          "link": 8515
+          "link": 8516
         },
         {
           "name": "overwrite",
           "type": "BOOLEAN",
-          "link": 8516
+          "link": 8517
         },
         {
           "name": "final_concat",
           "type": "BOOLEAN",
-          "link": 8517
+          "link": 8518
         },
         {
           "name": "yvann_render_fps",
           "type": "FLOAT",
-          "link": 8518
+          "link": 8519
         },
         {
           "name": "yvann_max_frames",
           "type": "INT",
-          "link": 8519
+          "link": 8520
         },
         {
           "name": "max_chunks",
           "type": "INT",
-          "link": 8520
+          "link": 8521
         },
         {
           "name": "uploaded_audio",
           "type": "AUDIO",
-          "link": 8521
+          "link": 8522
         }
       ],
       "outputs": [
@@ -2715,9 +2725,11 @@
         "input/Temple_of_the_Scales.mp3",
         "cinematic audio-reactive visuals, high detail, coherent motion, immersive lighting",
         "output/longform_yvann",
-        "user/default/workflows/Yvann_Longform_All_In_One_2H_Video_WORKFLOW.json",
+        "user/default/workflows/AudioReactive_ImagesToVideo_Yvann.json",
         45.0,
         5.0,
+        848,
+        480,
         "comfy_api",
         42,
         true,
@@ -3073,7 +3085,7 @@
           "name": "FLOAT",
           "type": "FLOAT",
           "links": [
-            8512
+            8511
           ]
         }
       ],
@@ -3083,6 +3095,94 @@
       },
       "widgets_values": [
         5.0
+      ]
+    },
+    {
+      "id": 733,
+      "type": "PrimitiveInt",
+      "pos": [
+        -3020,
+        260
+      ],
+      "size": [
+        300,
+        82
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "INT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "INT",
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            8512
+          ]
+        }
+      ],
+      "title": "render_width (848 for 16:9 480p)",
+      "properties": {
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        848,
+        "fixed"
+      ]
+    },
+    {
+      "id": 734,
+      "type": "PrimitiveInt",
+      "pos": [
+        -3020,
+        370
+      ],
+      "size": [
+        300,
+        82
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "INT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "INT",
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            8513
+          ]
+        }
+      ],
+      "title": "render_height (480p)",
+      "properties": {
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        480,
+        "fixed"
       ]
     }
   ],
@@ -3616,7 +3716,7 @@
       "STRING"
     ],
     [
-      8505,
+      8504,
       704,
       0,
       721,
@@ -3624,7 +3724,7 @@
       "BOOLEAN"
     ],
     [
-      8506,
+      8505,
       703,
       0,
       721,
@@ -3632,7 +3732,7 @@
       "STRING"
     ],
     [
-      8507,
+      8506,
       705,
       0,
       721,
@@ -3640,7 +3740,7 @@
       "STRING"
     ],
     [
-      8508,
+      8507,
       706,
       0,
       721,
@@ -3648,7 +3748,7 @@
       "STRING"
     ],
     [
-      8509,
+      8508,
       707,
       0,
       721,
@@ -3656,7 +3756,7 @@
       "STRING"
     ],
     [
-      8510,
+      8509,
       708,
       0,
       721,
@@ -3664,7 +3764,7 @@
       "STRING"
     ],
     [
-      8511,
+      8510,
       709,
       0,
       721,
@@ -3672,7 +3772,7 @@
       "FLOAT"
     ],
     [
-      8512,
+      8511,
       732,
       0,
       721,
@@ -3680,75 +3780,91 @@
       "FLOAT"
     ],
     [
-      8513,
-      711,
+      8512,
+      733,
       0,
       721,
       8,
-      "STRING"
+      "INT"
     ],
     [
-      8514,
-      712,
+      8513,
+      734,
       0,
       721,
       9,
       "INT"
     ],
     [
-      8515,
-      713,
+      8514,
+      711,
       0,
       721,
       10,
-      "BOOLEAN"
+      "STRING"
     ],
     [
-      8516,
-      714,
+      8515,
+      712,
       0,
       721,
       11,
-      "BOOLEAN"
+      "INT"
     ],
     [
-      8517,
-      715,
+      8516,
+      713,
       0,
       721,
       12,
       "BOOLEAN"
     ],
     [
-      8518,
-      716,
+      8517,
+      714,
       0,
       721,
       13,
-      "FLOAT"
+      "BOOLEAN"
     ],
     [
-      8519,
-      717,
+      8518,
+      715,
       0,
       721,
       14,
-      "INT"
+      "BOOLEAN"
     ],
     [
-      8520,
-      718,
+      8519,
+      716,
       0,
       721,
       15,
+      "FLOAT"
+    ],
+    [
+      8520,
+      717,
+      0,
+      721,
+      16,
       "INT"
     ],
     [
       8521,
+      718,
+      0,
+      721,
+      17,
+      "INT"
+    ],
+    [
+      8522,
       701,
       0,
       721,
-      16,
+      18,
       "AUDIO"
     ]
   ],

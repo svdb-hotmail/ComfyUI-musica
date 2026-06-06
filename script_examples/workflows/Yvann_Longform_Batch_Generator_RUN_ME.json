@@ -1,8 +1,8 @@
 {
   "id": "yvann-longform-batch-generator-run-me",
   "revision": 0,
-  "last_node_id": 552,
-  "last_link_id": 1644,
+  "last_node_id": 555,
+  "last_link_id": 1689,
   "nodes": [
     {
       "id": 528,
@@ -46,102 +46,117 @@
         {
           "name": "launch_now",
           "type": "BOOLEAN",
-          "link": 1624
+          "link": 1667
         },
         {
           "name": "script_path",
           "type": "STRING",
-          "link": 1625
+          "link": 1668
         },
         {
           "name": "audio_path",
           "type": "STRING",
-          "link": 1626
+          "link": 1669
         },
         {
           "name": "global_style_prompt",
           "type": "STRING",
-          "link": 1627
+          "link": 1670
         },
         {
           "name": "output_root",
           "type": "STRING",
-          "link": 1628
+          "link": 1671
         },
         {
           "name": "workflow_template_path",
           "type": "STRING",
-          "link": 1629
+          "link": 1672
         },
         {
           "name": "chunk_duration_seconds",
           "type": "FLOAT",
-          "link": 1630
+          "link": 1673
         },
         {
           "name": "overlap_seconds",
           "type": "FLOAT",
-          "link": 1631
+          "link": 1674
+        },
+        {
+          "name": "image_interval_seconds",
+          "type": "FLOAT",
+          "link": 1675
+        },
+        {
+          "name": "render_width",
+          "type": "INT",
+          "link": 1676
+        },
+        {
+          "name": "render_height",
+          "type": "INT",
+          "link": 1677
         },
         {
           "name": "image_backend",
           "type": "STRING",
-          "link": 1633
+          "link": 1678
         },
         {
           "name": "continuity_mode",
           "type": "STRING",
-          "link": 1633
+          "link": 1679
         },
         {
           "name": "seed_strategy",
           "type": "STRING",
-          "link": 1634
+          "link": 1680
         },
         {
           "name": "base_seed",
           "type": "INT",
-          "link": 1635
+          "link": 1681
         },
         {
           "name": "resume",
           "type": "BOOLEAN",
-          "link": 1636
+          "link": 1682
         },
         {
           "name": "overwrite",
           "type": "BOOLEAN",
-          "link": 1637
+          "link": 1683
         },
         {
           "name": "stop_on_failure",
           "type": "BOOLEAN",
-          "link": 1638
+          "link": 1684
         },
         {
           "name": "final_concat",
           "type": "BOOLEAN",
-          "link": 1639
+          "link": 1685
         },
         {
           "name": "yvann_render_fps",
           "type": "FLOAT",
-          "link": 1640
+          "link": 1686
         },
         {
           "name": "yvann_min_frames",
           "type": "INT",
-          "link": 1641
+          "link": 1687
         },
         {
           "name": "yvann_max_frames",
           "type": "INT",
-          "link": 1642
+          "link": 1688
         },
         {
           "name": "max_chunks",
           "type": "INT",
-          "link": 1643
+          "link": 1689
         }
       ],
       "outputs": [
@@ -174,6 +189,9 @@
         "user/default/workflows/AudioReactive_ImagesToVideo_Yvann.json",
         45.0,
         0.0,
+        5.0,
+        848,
+        480,
         "comfy_api",
         "style",
         "derived",
@@ -269,7 +287,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            1624
+            1667
           ]
         }
       ],
@@ -312,7 +330,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            1625
+            1668
           ]
         }
       ],
@@ -357,7 +375,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            1626
+            1669
           ]
         }
       ],
@@ -402,7 +420,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            1627
+            1670
           ]
         }
       ],
@@ -447,7 +465,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            1628
+            1671
           ]
         }
       ],
@@ -492,7 +510,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            1629
+            1672
           ]
         }
       ],
@@ -537,7 +555,7 @@
           "name": "FLOAT",
           "type": "FLOAT",
           "links": [
-            1630
+            1673
           ]
         }
       ],
@@ -580,7 +598,7 @@
           "name": "FLOAT",
           "type": "FLOAT",
           "links": [
-            1631
+            1674
           ]
         }
       ],
@@ -623,7 +641,8 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            1633
+            1678,
+            1679
           ]
         }
       ],
@@ -668,7 +687,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            1634
+            1680
           ]
         }
       ],
@@ -713,7 +732,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            1635
+            1681
           ]
         }
       ],
@@ -758,7 +777,7 @@
           "name": "INT",
           "type": "INT",
           "links": [
-            1636
+            1682
           ]
         }
       ],
@@ -802,7 +821,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            1637
+            1683
           ]
         }
       ],
@@ -845,7 +864,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            1638
+            1684
           ]
         }
       ],
@@ -888,7 +907,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            1639
+            1685
           ]
         }
       ],
@@ -931,7 +950,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            1640
+            1686
           ]
         }
       ],
@@ -974,7 +993,7 @@
           "name": "FLOAT",
           "type": "FLOAT",
           "links": [
-            1641
+            1687
           ]
         }
       ],
@@ -1017,7 +1036,7 @@
           "name": "INT",
           "type": "INT",
           "links": [
-            1642
+            1688
           ]
         }
       ],
@@ -1061,7 +1080,7 @@
           "name": "INT",
           "type": "INT",
           "links": [
-            1643
+            1689
           ]
         }
       ],
@@ -1104,9 +1123,7 @@
           "localized_name": "INT",
           "name": "INT",
           "type": "INT",
-          "links": [
-            1644
-          ]
+          "links": null
         }
       ],
       "title": "max_chunks",
@@ -1117,11 +1134,142 @@
         0,
         "fixed"
       ]
+    },
+    {
+      "id": 553,
+      "type": "PrimitiveInt",
+      "pos": [
+        -1460,
+        1140
+      ],
+      "size": [
+        300,
+        82
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "INT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "INT",
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            1676
+          ]
+        }
+      ],
+      "title": "render_width (848 for 16:9 480p)",
+      "properties": {
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        848,
+        "fixed"
+      ]
+    },
+    {
+      "id": 554,
+      "type": "PrimitiveInt",
+      "pos": [
+        -1460,
+        1250
+      ],
+      "size": [
+        300,
+        82
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "INT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "INT",
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            1677
+          ]
+        }
+      ],
+      "title": "render_height (480p)",
+      "properties": {
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        480,
+        "fixed"
+      ]
+    },
+    {
+      "id": 555,
+      "type": "PrimitiveFloat",
+      "pos": [
+        -1460,
+        1470
+      ],
+      "size": [
+        300,
+        70
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "value",
+          "name": "value",
+          "type": "FLOAT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "FLOAT",
+          "name": "FLOAT",
+          "type": "FLOAT",
+          "links": [
+            1675
+          ]
+        }
+      ],
+      "title": "image_interval_seconds",
+      "properties": {
+        "Node name for S&R": "PrimitiveFloat"
+      },
+      "widgets_values": [
+        5.0
+      ]
     }
   ],
   "links": [
     [
-      1624,
+      1667,
       532,
       0,
       529,
@@ -1129,7 +1277,7 @@
       "BOOLEAN"
     ],
     [
-      1625,
+      1668,
       533,
       0,
       529,
@@ -1137,7 +1285,7 @@
       "STRING"
     ],
     [
-      1626,
+      1669,
       534,
       0,
       529,
@@ -1145,7 +1293,7 @@
       "STRING"
     ],
     [
-      1627,
+      1670,
       535,
       0,
       529,
@@ -1153,7 +1301,7 @@
       "STRING"
     ],
     [
-      1628,
+      1671,
       536,
       0,
       529,
@@ -1161,7 +1309,7 @@
       "STRING"
     ],
     [
-      1629,
+      1672,
       537,
       0,
       529,
@@ -1169,7 +1317,7 @@
       "STRING"
     ],
     [
-      1630,
+      1673,
       538,
       0,
       529,
@@ -1177,7 +1325,7 @@
       "FLOAT"
     ],
     [
-      1631,
+      1674,
       539,
       0,
       529,
@@ -1185,99 +1333,123 @@
       "FLOAT"
     ],
     [
-      1633,
-      541,
+      1675,
+      555,
+      0,
+      529,
+      8,
+      "FLOAT"
+    ],
+    [
+      1676,
+      553,
       0,
       529,
       9,
-      "STRING"
+      "INT"
     ],
     [
-      1634,
-      542,
+      1677,
+      554,
       0,
       529,
       10,
-      "STRING"
+      "INT"
     ],
     [
-      1635,
-      543,
+      1678,
+      541,
       0,
       529,
       11,
       "STRING"
     ],
     [
-      1636,
-      544,
+      1679,
+      541,
       0,
       529,
       12,
-      "INT"
+      "STRING"
     ],
     [
-      1637,
-      545,
+      1680,
+      542,
       0,
       529,
       13,
-      "BOOLEAN"
+      "STRING"
     ],
     [
-      1638,
-      546,
+      1681,
+      543,
       0,
       529,
       14,
-      "BOOLEAN"
+      "INT"
     ],
     [
-      1639,
-      547,
+      1682,
+      544,
       0,
       529,
       15,
       "BOOLEAN"
     ],
     [
-      1640,
-      548,
+      1683,
+      545,
       0,
       529,
       16,
       "BOOLEAN"
     ],
     [
-      1641,
-      549,
+      1684,
+      546,
       0,
       529,
       17,
-      "FLOAT"
+      "BOOLEAN"
     ],
     [
-      1642,
-      550,
+      1685,
+      547,
       0,
       529,
       18,
-      "INT"
+      "BOOLEAN"
     ],
     [
-      1643,
-      551,
+      1686,
+      548,
       0,
       529,
       19,
-      "INT"
+      "FLOAT"
     ],
     [
-      1644,
-      552,
+      1687,
+      549,
       0,
       529,
       20,
+      "INT"
+    ],
+    [
+      1688,
+      550,
+      0,
+      529,
+      21,
+      "INT"
+    ],
+    [
+      1689,
+      551,
+      0,
+      529,
+      22,
       "INT"
     ]
   ],
