@@ -8,7 +8,7 @@ This feature adds an additive long-form orchestration runner for Yvann "Images t
 - `script_examples/longform_yvann_job_config.example.json`
 - `custom_nodes/longform_yvann_launcher.py`
 - `scripts/required_custom_nodes.json` (updated)
-- `blueprints/AudioReactive_ImagesToVideo_Yvann (Longform Launcher).json`
+- `script_examples/workflows/AudioReactive_ImagesToVideo_Yvann (Longform Launcher).json`
 - `scripts/apply_yvann_longform_template.py`
 
 ## What it does
