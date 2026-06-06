@@ -213,6 +213,19 @@ def _write_audio_input(path: Path, audio: object) -> None:
         wav_file.writeframes(pcm.tobytes())
 
 
+def _normalize_render_profile(value: object) -> str:
+    profile = str(value or "dj_final").strip().lower()
+    if profile in {"dj_final", "final", "production"}:
+        return "dj_final"
+    if profile in {"preview_fast", "preview", "fast"}:
+        return "preview_fast"
+    if profile == "custom":
+        return "custom"
+    if profile.isdigit():
+        return "dj_final"
+    raise ValueError("render_profile must be 'dj_final', 'preview_fast', or 'custom'")
+
+
 def _launch_process(config_path: Path, log_path: Path) -> subprocess.Popen:
     log_path.parent.mkdir(parents=True, exist_ok=True)
     log_file = open(log_path, "a", encoding="utf-8")
@@ -334,7 +347,7 @@ class LongformYvannLauncher:
             "motifs": [],
             "negative_prompt": "low quality, blurry, watermark, text artifacts",
             "continuity_mode": continuity_mode,
-            "render_profile": render_profile,
+            "render_profile": _normalize_render_profile(render_profile),
             "image_backend": image_backend,
             "image_interval_seconds": float(image_interval_seconds),
             "image_width": int(render_width),
@@ -492,7 +505,7 @@ class LongformYvannCueSheetLauncher:
             "motifs": [],
             "negative_prompt": "low quality, blurry, watermark, text artifacts",
             "continuity_mode": "style",
-            "render_profile": render_profile,
+            "render_profile": _normalize_render_profile(render_profile),
             "image_backend": image_backend,
             "image_interval_seconds": float(image_interval_seconds),
             "image_width": int(render_width),

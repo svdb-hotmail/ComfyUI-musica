@@ -92,7 +92,7 @@
       ],
       "flags": {},
       "order": 12,
-      "mode": 0,
+      "mode": 2,
       "inputs": [
         {
           "name": "audio",
@@ -1791,7 +1791,7 @@
       ],
       "flags": {},
       "order": 2,
-      "mode": 0,
+      "mode": 2,
       "inputs": [
         {
           "name": "audio",
