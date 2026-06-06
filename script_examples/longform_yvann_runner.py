@@ -529,6 +529,10 @@ class LongformYvannRunner:
     def _image_count_for_duration(self, duration: float) -> int:
         return max(1, int(math.ceil(duration / max(self.config.image_interval_seconds, 1e-6))))
 
+    @staticmethod
+    def _vae_safe_dimension(value: int) -> int:
+        return max(64, int(math.ceil(max(1, value) / 8) * 8))
+
     def _variation_prompt(self, base_prompt: str, batch_id: str | None, image_index: int, count: int) -> str:
         phase = image_index / max(count - 1, 1)
         camera = [
@@ -880,7 +884,54 @@ class LongformYvannRunner:
         workflow = json.loads(self.workflow_template_path.read_text(encoding="utf-8"))
         api_prompt = self.client.convert_workflow(workflow)
         self._normalize_prompt_values(api_prompt)
+        self._normalize_available_combo_values(api_prompt)
         return api_prompt
+
+    def _normalize_available_combo_values(self, prompt: dict[str, Any]) -> None:
+        object_info = self.client.get_json("/object_info")
+        preferred_values = {"ckpt_name": self.config.comfy_t2i_checkpoint}
+        for node in prompt.values():
+            class_type = node.get("class_type")
+            class_info = object_info.get(class_type)
+            if not class_info:
+                continue
+            input_specs = {}
+            for section in ("required", "optional"):
+                input_specs.update(class_info.get("input", {}).get(section, {}))
+            inputs = node.setdefault("inputs", {})
+            for input_name, value in list(inputs.items()):
+                if isinstance(value, list) or input_name not in input_specs:
+                    continue
+                spec = input_specs[input_name]
+                if not isinstance(spec, list) or not spec or not isinstance(spec[0], list):
+                    continue
+                allowed = spec[0]
+                if value in allowed:
+                    continue
+                replacement = self._pick_combo_replacement(str(value), allowed, preferred_values.get(input_name))
+                if replacement is not None:
+                    inputs[input_name] = replacement
+
+    @staticmethod
+    def _pick_combo_replacement(value: str, allowed: list[Any], preferred: str | None = None) -> Any | None:
+        if not allowed:
+            return None
+        string_allowed = [item for item in allowed if isinstance(item, str)]
+        value_lower = value.lower()
+        for candidate in string_allowed:
+            if candidate.lower() == value_lower:
+                return candidate
+        if preferred:
+            preferred_lower = preferred.lower()
+            for candidate in string_allowed:
+                if candidate.lower() == preferred_lower:
+                    return candidate
+        value_stem = Path(value_lower).stem
+        for candidate in string_allowed:
+            candidate_stem = Path(candidate.lower()).stem
+            if value_stem and (value_stem == candidate_stem or value_stem in candidate_stem or candidate_stem in value_stem):
+                return candidate
+        return allowed[0]
 
     @staticmethod
     def _normalize_prompt_values(prompt: dict[str, Any]) -> None:
@@ -946,8 +997,8 @@ class LongformYvannRunner:
             prompt[batch_loader_id].setdefault("inputs", {}).update(
                 {
                     "folder": str(batch_dir),
-                    "width": self.config.image_width,
-                    "height": self.config.image_height,
+                    "width": self._vae_safe_dimension(self.config.image_width),
+                    "height": self._vae_safe_dimension(self.config.image_height),
                     "keep_aspect_ratio": "crop",
                     "image_load_cap": 0,
                     "start_index": 0,
@@ -960,8 +1011,8 @@ class LongformYvannRunner:
                 "class_type": "LoadImagesFromFolderKJ",
                 "inputs": {
                     "folder": str(batch_dir),
-                    "width": self.config.image_width,
-                    "height": self.config.image_height,
+                    "width": self._vae_safe_dimension(self.config.image_width),
+                    "height": self._vae_safe_dimension(self.config.image_height),
                     "keep_aspect_ratio": "crop",
                     "image_load_cap": 0,
                     "start_index": 0,
@@ -990,10 +1041,11 @@ class LongformYvannRunner:
         for nid, node in prompt.items():
             ct = node.get("class_type")
             inputs = node.setdefault("inputs", {})
-            if ct == "INTConstant" and isinstance(inputs.get("value"), int) and inputs["value"] >= 48:
+            title = str(node.get("_meta", {}).get("title", "")).lower()
+            if ct == "INTConstant" and "frame" in title and isinstance(inputs.get("value"), int):
                 # Workflow group constants use this for animation batch size.
                 inputs["value"] = target_frames
-            if ct == "FloatConstant" and isinstance(inputs.get("value"), (int, float)) and float(inputs["value"]) > 0:
+            if ct == "FloatConstant" and "frame" in title and isinstance(inputs.get("value"), (int, float)):
                 # Workflow group constants use this for frame rate.
                 inputs["value"] = float(self.config.yvann_render_fps)
 

@@ -3966,7 +3966,7 @@
               "ver": "0.3.27"
             },
             "widgets_values": [
-              "dreamshaper_8.safetensors"
+              "DreamShaper_8_pruned.safetensors"
             ],
             "color": "#322",
             "bgcolor": "#533",
