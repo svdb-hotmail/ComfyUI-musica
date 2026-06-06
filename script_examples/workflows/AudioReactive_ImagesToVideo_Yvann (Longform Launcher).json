@@ -263,7 +263,7 @@
         "Node name for S&R": "LoadImagesFromFolderKJ"
       },
       "widgets_values": [
-        "",
+        "comfy/comfy_types/examples",
         1024,
         576,
         "crop",

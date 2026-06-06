@@ -2,7 +2,7 @@
   "id": "yvann-longform-all-in-one-2h-video-workflow",
   "revision": 0,
   "last_node_id": 732,
-  "last_link_id": 8504,
+  "last_link_id": 8521,
   "nodes": [
     {
       "id": 56,
@@ -265,7 +265,7 @@
         "Node name for S&R": "LoadImagesFromFolderKJ"
       },
       "widgets_values": [
-        "",
+        "comfy/comfy_types/examples",
         1024,
         576,
         "crop",
@@ -275,7 +275,7 @@
       ],
       "color": "#432",
       "bgcolor": "#653",
-      "title": "Generated Scene Image Batch (KJ folder loader)"
+      "title": "Generated Scene Image Batch (runner replaces placeholder)"
     },
     {
       "id": 410,
@@ -290,7 +290,7 @@
       ],
       "flags": {},
       "order": 23,
-      "mode": 0,
+      "mode": 2,
       "inputs": [
         {
           "name": "images",
@@ -332,7 +332,7 @@
           "links": null
         }
       ],
-      "title": "First Pass | Low Res",
+      "title": "First Pass | Low Res (reference - launched by runner)",
       "properties": {
         "Node name for S&R": "VHS_VideoCombine",
         "cnr_id": "comfyui-videohelpersuite",
@@ -610,7 +610,7 @@
       ],
       "flags": {},
       "order": 25,
-      "mode": 4,
+      "mode": 2,
       "inputs": [
         {
           "name": "images",
@@ -651,7 +651,7 @@
           "links": null
         }
       ],
-      "title": "Second Pass | High Res",
+      "title": "Second Pass | High Res (reference - launched by runner)",
       "properties": {
         "Node name for S&R": "VHS_VideoCombine",
         "cnr_id": "comfyui-videohelpersuite",
@@ -698,7 +698,7 @@
       ],
       "flags": {},
       "order": 27,
-      "mode": 4,
+      "mode": 2,
       "inputs": [
         {
           "name": "images",
@@ -739,7 +739,7 @@
           "links": null
         }
       ],
-      "title": "Upscale | High High Res",
+      "title": "Upscale | High High Res (reference - launched by runner)",
       "properties": {
         "Node name for S&R": "VHS_VideoCombine",
         "cnr_id": "comfyui-videohelpersuite",
@@ -1765,8 +1765,8 @@
           "name": "AUDIO",
           "type": "AUDIO",
           "links": [
-            8102,
-            8101
+            8101,
+            8521
           ]
         }
       ],
@@ -1842,7 +1842,7 @@
           "name": "cue_sheet_text",
           "type": "STRING",
           "links": [
-            8113
+            8506
           ]
         },
         {
@@ -1898,7 +1898,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            8201
+            8505
           ]
         }
       ],
@@ -1942,7 +1942,7 @@
           "type": "STRING",
           "links": [
             8110,
-            8202
+            8507
           ]
         }
       ],
@@ -1987,7 +1987,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            8203
+            8508
           ]
         }
       ],
@@ -2032,10 +2032,10 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            8204,
             8402,
             8403,
-            8502
+            8502,
+            8509
           ]
         }
       ],
@@ -2080,17 +2080,17 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            8205,
-            8406
+            8406,
+            8510
           ]
         }
       ],
-      "title": "yvann_workflow_path - this all-in-one workflow",
+      "title": "yvann_workflow_path - base render workflow",
       "properties": {
         "Node name for S&R": "PrimitiveStringMultiline"
       },
       "widgets_values": [
-        "user/default/workflows/Yvann_Longform_All_In_One_2H_Video_WORKFLOW.json",
+        "user/default/workflows/AudioReactive_ImagesToVideo_Yvann.json",
         "",
         ""
       ]
@@ -2127,7 +2127,7 @@
           "type": "FLOAT",
           "links": [
             8111,
-            8206
+            8511
           ]
         }
       ],
@@ -2170,7 +2170,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            8208
+            8513
           ]
         }
       ],
@@ -2215,7 +2215,7 @@
           "name": "INT",
           "type": "INT",
           "links": [
-            8209
+            8514
           ]
         }
       ],
@@ -2259,7 +2259,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            8210
+            8515
           ]
         }
       ],
@@ -2302,7 +2302,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            8211
+            8516
           ]
         }
       ],
@@ -2345,7 +2345,7 @@
           "name": "BOOLEAN",
           "type": "BOOLEAN",
           "links": [
-            8212
+            8517
           ]
         }
       ],
@@ -2388,7 +2388,7 @@
           "name": "FLOAT",
           "type": "FLOAT",
           "links": [
-            8213
+            8518
           ]
         }
       ],
@@ -2431,7 +2431,7 @@
           "name": "INT",
           "type": "INT",
           "links": [
-            8214
+            8519
           ]
         }
       ],
@@ -2476,7 +2476,7 @@
           "type": "INT",
           "links": [
             8112,
-            8215
+            8520
           ]
         }
       ],
@@ -2597,87 +2597,87 @@
         {
           "name": "launch_now",
           "type": "BOOLEAN",
-          "link": 8201
+          "link": 8505
         },
         {
           "name": "cue_sheet_text",
           "type": "STRING",
-          "link": 8113
+          "link": 8506
         },
         {
           "name": "audio_path",
           "type": "STRING",
-          "link": 8202
+          "link": 8507
         },
         {
           "name": "global_style_prompt",
           "type": "STRING",
-          "link": 8203
+          "link": 8508
         },
         {
           "name": "output_root",
           "type": "STRING",
-          "link": 8204
+          "link": 8509
         },
         {
           "name": "yvann_workflow_path",
           "type": "STRING",
-          "link": 8205
+          "link": 8510
         },
         {
           "name": "chunk_duration_seconds",
           "type": "FLOAT",
-          "link": 8206
+          "link": 8511
         },
         {
           "name": "image_interval_seconds",
           "type": "FLOAT",
-          "link": 8504
+          "link": 8512
         },
         {
           "name": "image_backend",
           "type": "STRING",
-          "link": 8504
+          "link": 8513
         },
         {
           "name": "base_seed",
           "type": "INT",
-          "link": 8208
+          "link": 8514
         },
         {
           "name": "resume",
           "type": "BOOLEAN",
-          "link": 8209
+          "link": 8515
         },
         {
           "name": "overwrite",
           "type": "BOOLEAN",
-          "link": 8210
+          "link": 8516
         },
         {
           "name": "final_concat",
           "type": "BOOLEAN",
-          "link": 8211
+          "link": 8517
         },
         {
           "name": "yvann_render_fps",
           "type": "FLOAT",
-          "link": 8212
+          "link": 8518
         },
         {
           "name": "yvann_max_frames",
           "type": "INT",
-          "link": 8213
+          "link": 8519
         },
         {
           "name": "max_chunks",
           "type": "INT",
-          "link": 8214
+          "link": 8520
         },
         {
           "name": "uploaded_audio",
           "type": "AUDIO",
-          "link": 8215
+          "link": 8521
         }
       ],
       "outputs": [
@@ -3073,7 +3073,7 @@
           "name": "FLOAT",
           "type": "FLOAT",
           "links": [
-            8504
+            8512
           ]
         }
       ],
@@ -3512,134 +3512,6 @@
       "INT"
     ],
     [
-      8201,
-      704,
-      0,
-      721,
-      0,
-      "BOOLEAN"
-    ],
-    [
-      8113,
-      703,
-      0,
-      721,
-      1,
-      "STRING"
-    ],
-    [
-      8202,
-      705,
-      0,
-      721,
-      2,
-      "STRING"
-    ],
-    [
-      8203,
-      706,
-      0,
-      721,
-      3,
-      "STRING"
-    ],
-    [
-      8204,
-      707,
-      0,
-      721,
-      4,
-      "STRING"
-    ],
-    [
-      8205,
-      708,
-      0,
-      721,
-      5,
-      "STRING"
-    ],
-    [
-      8206,
-      709,
-      0,
-      721,
-      6,
-      "FLOAT"
-    ],
-    [
-      8208,
-      711,
-      0,
-      721,
-      9,
-      "STRING"
-    ],
-    [
-      8209,
-      712,
-      0,
-      721,
-      10,
-      "INT"
-    ],
-    [
-      8210,
-      713,
-      0,
-      721,
-      11,
-      "BOOLEAN"
-    ],
-    [
-      8211,
-      714,
-      0,
-      721,
-      12,
-      "BOOLEAN"
-    ],
-    [
-      8212,
-      715,
-      0,
-      721,
-      13,
-      "BOOLEAN"
-    ],
-    [
-      8213,
-      716,
-      0,
-      721,
-      14,
-      "FLOAT"
-    ],
-    [
-      8214,
-      717,
-      0,
-      721,
-      15,
-      "INT"
-    ],
-    [
-      8215,
-      718,
-      0,
-      721,
-      16,
-      "INT"
-    ],
-    [
-      8102,
-      701,
-      0,
-      721,
-      17,
-      "AUDIO"
-    ],
-    [
       8101,
       701,
       0,
@@ -3744,12 +3616,140 @@
       "STRING"
     ],
     [
-      8504,
+      8505,
+      704,
+      0,
+      721,
+      0,
+      "BOOLEAN"
+    ],
+    [
+      8506,
+      703,
+      0,
+      721,
+      1,
+      "STRING"
+    ],
+    [
+      8507,
+      705,
+      0,
+      721,
+      2,
+      "STRING"
+    ],
+    [
+      8508,
+      706,
+      0,
+      721,
+      3,
+      "STRING"
+    ],
+    [
+      8509,
+      707,
+      0,
+      721,
+      4,
+      "STRING"
+    ],
+    [
+      8510,
+      708,
+      0,
+      721,
+      5,
+      "STRING"
+    ],
+    [
+      8511,
+      709,
+      0,
+      721,
+      6,
+      "FLOAT"
+    ],
+    [
+      8512,
       732,
       0,
       721,
-      8,
+      7,
       "FLOAT"
+    ],
+    [
+      8513,
+      711,
+      0,
+      721,
+      8,
+      "STRING"
+    ],
+    [
+      8514,
+      712,
+      0,
+      721,
+      9,
+      "INT"
+    ],
+    [
+      8515,
+      713,
+      0,
+      721,
+      10,
+      "BOOLEAN"
+    ],
+    [
+      8516,
+      714,
+      0,
+      721,
+      11,
+      "BOOLEAN"
+    ],
+    [
+      8517,
+      715,
+      0,
+      721,
+      12,
+      "BOOLEAN"
+    ],
+    [
+      8518,
+      716,
+      0,
+      721,
+      13,
+      "FLOAT"
+    ],
+    [
+      8519,
+      717,
+      0,
+      721,
+      14,
+      "INT"
+    ],
+    [
+      8520,
+      718,
+      0,
+      721,
+      15,
+      "INT"
+    ],
+    [
+      8521,
+      701,
+      0,
+      721,
+      16,
+      "AUDIO"
     ]
   ],
   "groups": [
