@@ -793,6 +793,77 @@ class LongformYvannGeneratedImagesOutput:
         return {"ui": ui, "result": (batch, text)}
 
 
+class LongformYvannWorkflowInspector:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "yvann_workflow_path": (
+                    "STRING",
+                    {"multiline": False, "default": "user/default/workflows/AudioReactive_ImagesToVideo_Yvann.json"},
+                ),
+            }
+        }
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("yvann_node_report",)
+    FUNCTION = "inspect"
+    OUTPUT_NODE = True
+    CATEGORY = "Yvann/Longform"
+
+    def inspect(self, yvann_workflow_path):
+        workflow_path = _resolve_path(str(yvann_workflow_path))
+        if not workflow_path.exists():
+            text = f"Yvann workflow not found: {workflow_path}"
+            return {"ui": {"text": [text]}, "result": (text,)}
+
+        workflow = json.loads(workflow_path.read_text(encoding="utf-8"))
+        load_images = []
+        load_audio = []
+        audio_nodes = []
+        outputs = []
+        for node in workflow.get("nodes", []):
+            node_type = str(node.get("type", ""))
+            title = node.get("title") or node.get("type") or ""
+            title_lower = str(title).lower()
+            node_id = node.get("id")
+            if node_type == "LoadImage":
+                load_images.append(f"{node_id} {title}")
+            elif node_type == "LoadAudio" or title_lower == "load audio":
+                load_audio.append(f"{node_id} {title}")
+            elif "Audio" in node_type or "audio" in title_lower:
+                audio_nodes.append(f"{node_id} {node_type} {title}")
+            elif node_type == "VHS_VideoCombine":
+                outputs.append(f"{node_id} {title}")
+
+        lines = [
+            "Actual Yvann render engine",
+            f"Workflow file: {workflow_path}",
+            "",
+            "The longform launcher does not render video itself. For every timestamp chunk it:",
+            "1. generates batch images,",
+            "2. copies them into ComfyUI input,",
+            "3. replaces these Yvann LoadImage nodes,",
+            "4. replaces the Yvann LoadAudio node with the chunk audio,",
+            "5. queues the Yvann video output node.",
+            "",
+            "Yvann image inputs replaced per chunk:",
+        ]
+        lines.extend([f"- {item}" for item in load_images] or ["- none found"])
+        lines.append("")
+        lines.append("Yvann audio input replaced per chunk:")
+        lines.extend([f"- {item}" for item in load_audio] or ["- none found"])
+        lines.append("")
+        lines.append("Yvann audio-reactive processing nodes:")
+        lines.extend([f"- {item}" for item in audio_nodes[:12]] or ["- none found"])
+        lines.append("")
+        lines.append("Yvann video outputs available:")
+        lines.extend([f"- {item}" for item in outputs] or ["- none found"])
+
+        text = "\n".join(lines)
+        return {"ui": {"text": lines}, "result": (text,)}
+
+
 @PromptServer.instance.routes.get("/yvann_longform/jobs")
 async def get_jobs(_request):
     jobs = []
@@ -815,6 +886,7 @@ NODE_CLASS_MAPPINGS = {
     "LongformYvannCueSheetBatchPlan": LongformYvannCueSheetBatchPlan,
     "LongformYvannJobStatus": LongformYvannJobStatus,
     "LongformYvannGeneratedImagesOutput": LongformYvannGeneratedImagesOutput,
+    "LongformYvannWorkflowInspector": LongformYvannWorkflowInspector,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -824,4 +896,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "LongformYvannCueSheetBatchPlan": "Yvann Cue Sheet Batch Plan",
     "LongformYvannJobStatus": "Yvann Longform Job Status",
     "LongformYvannGeneratedImagesOutput": "Yvann Generated Batch Images Output",
+    "LongformYvannWorkflowInspector": "Yvann Render Engine Inspector",
 }

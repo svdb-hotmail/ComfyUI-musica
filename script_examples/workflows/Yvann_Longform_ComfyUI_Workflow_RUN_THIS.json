@@ -1,8 +1,8 @@
 {
   "id": "yvann-longform-comfyui-workflow-run-this",
   "revision": 0,
-  "last_node_id": 107,
-  "last_link_id": 6002,
+  "last_node_id": 109,
+  "last_link_id": 7001,
   "nodes": [
     {
       "id": 1,
@@ -300,11 +300,12 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            3005
+            3005,
+            7001
           ]
         }
       ],
-      "title": "yvann_workflow_path",
+      "title": "yvann_workflow_path - actual render engine",
       "properties": {
         "Node name for S&R": "PrimitiveStringMultiline"
       },
@@ -1122,7 +1123,7 @@
       "title": "HOW IT CONNECTS TO YVANN",
       "properties": {},
       "widgets_values": [
-        "### How generated images reach Yvann\nGenerated Batch Images Output is the visible preview/output socket.\nThe actual Yvann render connection happens inside QUEUE THIS: it reads yvann_workflow_path, generates images for each chunk, copies them to ComfyUI input, replaces Yvann LoadImage nodes with those files, replaces LoadAudio with the chunk audio, then queues Yvann output node 410.\nSo: preview output = see images; launcher = feeds images into Yvann per timestamp batch."
+        "### How generated images reach Yvann\nGenerated Batch Images Output is the visible preview/output socket.\nThe Actual Yvann Render Engine inspector shows the real Yvann workflow file and nodes.\nQUEUE THIS reads yvann_workflow_path, generates images for each chunk, copies them to ComfyUI input, replaces Yvann LoadImage nodes with those files, replaces LoadAudio with the chunk audio, then queues Yvann output node 410."
       ]
     },
     {
@@ -1218,6 +1219,64 @@
       "properties": {},
       "widgets_values": [
         "### Audio input\nThe audio_path value feeds this visible loader so you can verify/play the selected mix.\nThe same path also feeds the parser and generator. During rendering, the runner splits this full mix into chunks and injects each chunk into Yvann LoadAudio."
+      ]
+    },
+    {
+      "id": 108,
+      "type": "LongformYvannWorkflowInspector",
+      "pos": [
+        80,
+        1520
+      ],
+      "size": [
+        620,
+        340
+      ],
+      "flags": {},
+      "order": 53,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "yvann_workflow_path",
+          "type": "STRING",
+          "link": 7001
+        }
+      ],
+      "outputs": [
+        {
+          "name": "yvann_node_report",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "title": "Actual Yvann Render Engine",
+      "properties": {
+        "Node name for S&R": "LongformYvannWorkflowInspector"
+      },
+      "widgets_values": [
+        "user/default/workflows/AudioReactive_ImagesToVideo_Yvann.json"
+      ]
+    },
+    {
+      "id": 109,
+      "type": "MarkdownNote",
+      "pos": [
+        720,
+        1260
+      ],
+      "size": [
+        560,
+        260
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "WHERE THE YVANN FLOW IS",
+      "properties": {},
+      "widgets_values": [
+        "### Where is the actual Yvann flow?\nIt is the workflow file selected by yvann_workflow_path.\nThis canvas is the control/inspection layer. The actual Yvann Images-to-Video graph remains in AudioReactive_ImagesToVideo_Yvann and is loaded by the launcher for each chunk.\nThe inspector node lists the Yvann LoadImage, LoadAudio, audio-reactive, and video-output nodes that will be used."
       ]
     }
   ],
@@ -1453,6 +1512,14 @@
       106,
       0,
       "AUDIO"
+    ],
+    [
+      7001,
+      7,
+      0,
+      108,
+      0,
+      "STRING"
     ]
   ],
   "groups": [],
