@@ -8,6 +8,8 @@ This feature adds an additive long-form orchestration runner for Yvann "Images t
 - `script_examples/longform_yvann_job_config.example.json`
 - `custom_nodes/longform_yvann_launcher.py`
 - `scripts/required_custom_nodes.json` (updated)
+- `blueprints/AudioReactive_ImagesToVideo_Yvann (Longform Launcher).json`
+- `scripts/apply_yvann_longform_template.py`
 
 ## What it does
 
@@ -49,6 +51,19 @@ From ComfyUI root:
 ```bash
 python script_examples/longform_yvann_runner.py --config script_examples/longform_yvann_job_config.example.json
 ```
+
+## Apply the longform-modified base Yvann template
+
+This copies the tracked longform-enhanced template into the Yvann base workflow path.
+
+```bash
+python scripts/apply_yvann_longform_template.py --repo-root . --apply-user-workflow
+```
+
+Target paths updated by this command:
+
+- `custom_nodes/comfyui_yvann-nodes/example_workflows/AudioReactive_ImagesToVideo_Yvann.json`
+- `user/default/workflows/AudioReactive_ImagesToVideo_Yvann.json` (when `--apply-user-workflow` is set)
 
 Dry-run mode (planning/chunking/image generation only):
 
