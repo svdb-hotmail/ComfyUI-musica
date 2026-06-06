@@ -67,6 +67,7 @@ class LongformYvannLauncher:
     def INPUT_TYPES(cls):
         return {
             "required": {
+                "launch_now": ("BOOLEAN", {"default": True}),
                 "script_path": ("STRING", {"multiline": False, "default": "input/longform_script.txt"}),
                 "audio_path": ("STRING", {"multiline": False, "default": "input/Temple_of_the_Scales.mp3"}),
                 "global_style_prompt": (
@@ -102,10 +103,12 @@ class LongformYvannLauncher:
     RETURN_TYPES = ("STRING", "STRING", "STRING")
     RETURN_NAMES = ("job_id", "job_dir", "config_path")
     FUNCTION = "launch_job"
+    OUTPUT_NODE = True
     CATEGORY = "Yvann/Longform"
 
     def launch_job(
         self,
+        launch_now,
         script_path,
         audio_path,
         global_style_prompt,
@@ -127,6 +130,9 @@ class LongformYvannLauncher:
         yvann_max_frames,
         max_chunks,
     ):
+        if not bool(launch_now):
+            return ("launch_disabled", "", "")
+
         repo_root = _repo_root()
         resolved_output_root = _resolve_path(output_root)
         resolved_output_root.mkdir(parents=True, exist_ok=True)

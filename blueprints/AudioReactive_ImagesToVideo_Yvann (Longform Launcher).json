@@ -1737,7 +1737,7 @@
       "title": "LONGFORM JOB LAUNCHER",
       "properties": {},
       "widgets_values": [
-        "### Longform Script+Audio Runner (MVP)\nUse the launcher node below to start chunked long-form jobs directly from this template.\n\nInputs you should set:\n- script_path\n- audio_path\n- global_style_prompt\n- output_root\n- chunk_duration_seconds / overlap_seconds\n- max_chunks (0 means full audio)\n\nThis is additive and does not change the original short-form graph behavior."
+        "### Longform Script+Audio Runner (Wired)\nThis node is now an output node and runs when you queue this workflow.\nUse launch_now=false to temporarily disable longform launching while editing.\n\nSet:\n- script_path\n- audio_path\n- global_style_prompt\n- output_root\n- chunk_duration_seconds / overlap_seconds\n- max_chunks (0 = full audio)"
       ],
       "color": "#223",
       "bgcolor": "#335"
@@ -1875,11 +1875,12 @@
           "links": null
         }
       ],
-      "title": "Launch Longform Yvann Job",
+      "title": "Launch Longform Yvann Job (Wired)",
       "properties": {
         "Node name for S&R": "LongformYvannLauncher"
       },
       "widgets_values": [
+        true,
         "input/longform_script.txt",
         "input/Temple_of_the_Scales.mp3",
         "abstract neon cyberpunk animation, glowing ribbon structures, tunnel geometry, cinematic volumetric light",
