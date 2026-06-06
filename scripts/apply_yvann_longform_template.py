@@ -14,12 +14,16 @@ def main() -> int:
 
     repo_root = Path(args.repo_root).resolve()
     source = repo_root / "script_examples" / "workflows" / "AudioReactive_ImagesToVideo_Yvann (Longform Launcher).json"
+    run_me_source = repo_root / "script_examples" / "workflows" / "Yvann_Longform_Batch_Generator_RUN_ME.json"
     target_base = repo_root / "custom_nodes" / "comfyui_yvann-nodes" / "example_workflows" / "AudioReactive_ImagesToVideo_Yvann.json"
     user_target = repo_root / "user" / "default" / "workflows" / "AudioReactive_ImagesToVideo_Yvann.json"
     user_longform_target = repo_root / "user" / "default" / "workflows" / "AudioReactive_ImagesToVideo_Yvann_Longform_Batch_Generator.json"
+    user_run_me_target = repo_root / "user" / "default" / "workflows" / "Yvann_Longform_Batch_Generator_RUN_ME.json"
 
     if not source.exists():
         raise FileNotFoundError(f"Source template not found: {source}")
+    if not run_me_source.exists():
+        raise FileNotFoundError(f"RUN ME workflow not found: {run_me_source}")
     if not target_base.parent.exists():
         raise FileNotFoundError(f"Yvann workflow path not found: {target_base.parent}")
 
@@ -33,6 +37,8 @@ def main() -> int:
         print(f"Applied user workflow template: {user_target}")
         shutil.copy2(source, user_longform_target)
         print(f"Applied longform user workflow: {user_longform_target}")
+        shutil.copy2(run_me_source, user_run_me_target)
+        print(f"Applied RUN ME launcher workflow: {user_run_me_target}")
 
     return 0
 
