@@ -129,6 +129,7 @@ class JobConfig:
     yvann_render_fps: float = 8.0
     yvann_min_frames: int = 24
     yvann_max_frames: int = 192
+    job_id: str | None = None
 
     # Optional cap for tests/sampling.
     max_chunks: int | None = None
@@ -214,7 +215,7 @@ class LongformYvannRunner:
         if not self.workflow_template_path.is_absolute():
             self.workflow_template_path = (self.comfy_root / self.workflow_template_path).resolve()
 
-        self.job_id = f"job_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        self.job_id = config.job_id or f"job_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         self.job_dir = Path(config.output_root).resolve() / self.job_id
         self.manifest_dir = self.job_dir / "manifest"
         self.audio_chunks_dir = self.job_dir / "audio_chunks"

@@ -6,6 +6,7 @@ This feature adds an additive long-form orchestration runner for Yvann "Images t
 
 - `script_examples/longform_yvann_runner.py`
 - `script_examples/longform_yvann_job_config.example.json`
+- `custom_nodes/longform_yvann_launcher.py`
 - `scripts/required_custom_nodes.json` (updated)
 
 ## What it does
@@ -28,6 +29,18 @@ This feature adds an additive long-form orchestration runner for Yvann "Images t
 - Saves each chunk video immediately and updates state after every chunk.
 - Supports interruption/restart via manifest/state persistence.
 - Optionally concatenates chunk videos with ffmpeg concat demuxer.
+
+## ComfyUI launcher node
+
+The repo now includes a custom node named `Yvann Longform Launcher` under the `Yvann/Longform` category.
+
+It lets you launch jobs directly from a workflow using the ComfyUI server process, and it exposes job status at:
+
+```text
+/yvann_longform/jobs
+```
+
+The node writes a launch config next to the job outputs and starts the runner in the background.
 
 ## Run
 
