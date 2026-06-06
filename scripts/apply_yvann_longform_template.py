@@ -16,6 +16,7 @@ def main() -> int:
     source = repo_root / "script_examples" / "workflows" / "AudioReactive_ImagesToVideo_Yvann (Longform Launcher).json"
     target_base = repo_root / "custom_nodes" / "comfyui_yvann-nodes" / "example_workflows" / "AudioReactive_ImagesToVideo_Yvann.json"
     user_target = repo_root / "user" / "default" / "workflows" / "AudioReactive_ImagesToVideo_Yvann.json"
+    user_longform_target = repo_root / "user" / "default" / "workflows" / "AudioReactive_ImagesToVideo_Yvann_Longform_Batch_Generator.json"
 
     if not source.exists():
         raise FileNotFoundError(f"Source template not found: {source}")
@@ -30,6 +31,8 @@ def main() -> int:
         user_target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, user_target)
         print(f"Applied user workflow template: {user_target}")
+        shutil.copy2(source, user_longform_target)
+        print(f"Applied longform user workflow: {user_longform_target}")
 
     return 0
 
