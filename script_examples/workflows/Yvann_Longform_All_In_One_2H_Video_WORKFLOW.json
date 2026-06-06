@@ -1,8 +1,8 @@
 {
   "id": "yvann-longform-all-in-one-2h-video-workflow",
   "revision": 0,
-  "last_node_id": 725,
-  "last_link_id": 8406,
+  "last_node_id": 731,
+  "last_link_id": 8503,
   "nodes": [
     {
       "id": 56,
@@ -44,7 +44,8 @@
         "image"
       ],
       "color": "#432",
-      "bgcolor": "#653"
+      "bgcolor": "#653",
+      "title": "Yvann Image Slot 1 (generated img 01)"
     },
     {
       "id": 297,
@@ -214,7 +215,8 @@
         "image"
       ],
       "color": "#432",
-      "bgcolor": "#653"
+      "bgcolor": "#653",
+      "title": "Yvann Image Slot 2 (generated img 02)"
     },
     {
       "id": 376,
@@ -1360,7 +1362,8 @@
         "image"
       ],
       "color": "#432",
-      "bgcolor": "#653"
+      "bgcolor": "#653",
+      "title": "Yvann Image Slot 3 (generated img 03)"
     },
     {
       "id": 267,
@@ -1402,7 +1405,8 @@
         "image"
       ],
       "color": "#432",
-      "bgcolor": "#653"
+      "bgcolor": "#653",
+      "title": "Yvann Image Slot 4 (generated img 04)"
     },
     {
       "id": 523,
@@ -1737,7 +1741,7 @@
       "title": "START HERE - ALL IN ONE",
       "properties": {},
       "widgets_values": [
-        "### START HERE - All-in-one 2h Yvann workflow\nThis canvas contains the actual Yvann Images-to-Video graph plus the longform cue-sheet controls.\n1. Choose/upload the full music mix in Load Audio.\n2. Paste/edit the cue sheet in Cue Sheet Textbox + Parser.\n3. Press Queue on this workflow.\nThe launcher generates images per timestamp batch, splits the audio, injects generated images/audio into the Yvann graph nodes on this canvas, and renders chunks through Yvann output node 410.\nUse max_chunks=2 for a quick test; use 0 for the full 2h render."
+        "### START HERE - All-in-one 2h Yvann workflow\nThis canvas contains the actual Yvann Images-to-Video graph plus the longform cue-sheet controls.\nYvann expects four images; keep images_per_chunk=4. The Four Generated Images node exposes exactly yvann_image_1 through yvann_image_4 for inspection.\n1. Choose/upload the full music mix in Load Audio.\n2. Paste/edit the cue sheet in Cue Sheet Textbox + Parser.\n3. Press Queue.\nThe launcher generates four images per timestamp batch, splits the audio, injects those four images/audio into the Yvann graph nodes on this canvas, and renders chunks through Yvann output node 410."
       ]
     },
     {
@@ -2032,7 +2036,8 @@
           "links": [
             8204,
             8402,
-            8403
+            8403,
+            8502
           ]
         }
       ],
@@ -2561,7 +2566,8 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            8404
+            8404,
+            8503
           ]
         }
       ],
@@ -2736,7 +2742,8 @@
             8302,
             8401,
             8302,
-            8401
+            8401,
+            8501
           ]
         },
         {
@@ -2924,6 +2931,180 @@
       "properties": {},
       "widgets_values": [
         "### This workflow contains everything\nLeft/top: audio upload/select and cue parser.\nMiddle: longform launcher that loops through timestamp chunks.\nRight: generated image output, status, and Yvann render-engine inspector.\nThe original Yvann Images-to-Video graph is also on this same canvas. During a job, the launcher uses yvann_workflow_path pointing to this workflow, replaces the Yvann LoadImage and Load Audio nodes for each chunk, and queues Yvann output node 410."
+      ]
+    },
+    {
+      "id": 726,
+      "type": "LongformYvannFourImagesOutput",
+      "pos": [
+        720,
+        430
+      ],
+      "size": [
+        620,
+        330
+      ],
+      "flags": {},
+      "order": 54,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "job_dir",
+          "type": "STRING",
+          "link": 8501
+        },
+        {
+          "name": "output_root",
+          "type": "STRING",
+          "link": 8502
+        },
+        {
+          "name": "batch_or_chunk_filter",
+          "type": "STRING",
+          "link": 8503
+        }
+      ],
+      "outputs": [
+        {
+          "name": "yvann_image_1",
+          "type": "IMAGE",
+          "links": []
+        },
+        {
+          "name": "yvann_image_2",
+          "type": "IMAGE",
+          "links": []
+        },
+        {
+          "name": "yvann_image_3",
+          "type": "IMAGE",
+          "links": []
+        },
+        {
+          "name": "yvann_image_4",
+          "type": "IMAGE",
+          "links": []
+        },
+        {
+          "name": "image_slot_manifest",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "title": "Four Generated Images For Yvann Slots",
+      "properties": {
+        "Node name for S&R": "LongformYvannFourImagesOutput"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 727,
+      "type": "MarkdownNote",
+      "pos": [
+        -80,
+        -180
+      ],
+      "size": [
+        430,
+        150
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "YVANN IMAGE SLOT 1",
+      "properties": {},
+      "widgets_values": [
+        "Generated image 01 is injected into Yvann LoadImage node 56 for every chunk."
+      ]
+    },
+    {
+      "id": 728,
+      "type": "MarkdownNote",
+      "pos": [
+        390,
+        -180
+      ],
+      "size": [
+        430,
+        150
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "YVANN IMAGE SLOT 2",
+      "properties": {},
+      "widgets_values": [
+        "Generated image 02 is injected into Yvann LoadImage node 372 for every chunk."
+      ]
+    },
+    {
+      "id": 729,
+      "type": "MarkdownNote",
+      "pos": [
+        -80,
+        40
+      ],
+      "size": [
+        430,
+        150
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "YVANN IMAGE SLOT 3",
+      "properties": {},
+      "widgets_values": [
+        "Generated image 03 is injected into Yvann LoadImage node 58 for every chunk."
+      ]
+    },
+    {
+      "id": 730,
+      "type": "MarkdownNote",
+      "pos": [
+        390,
+        40
+      ],
+      "size": [
+        430,
+        150
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "YVANN IMAGE SLOT 4",
+      "properties": {},
+      "widgets_values": [
+        "Generated image 04 is injected into Yvann LoadImage node 267 for every chunk."
+      ]
+    },
+    {
+      "id": 731,
+      "type": "MarkdownNote",
+      "pos": [
+        720,
+        790
+      ],
+      "size": [
+        620,
+        230
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "WHY FOUR IMAGES?",
+      "properties": {},
+      "widgets_values": [
+        "### Yvann expects four images\nThe longform generator creates images_per_chunk images. Keep images_per_chunk at 4 for this Yvann workflow.\nFour Generated Images For Yvann Slots exposes the exact four images that will be used for the selected batch/chunk.\nDuring rendering, QUEUE THIS maps those four files into Yvann image slots 1-4 and then queues Yvann output node 410."
       ]
     }
   ],
@@ -3598,6 +3779,30 @@
       0,
       724,
       0,
+      "STRING"
+    ],
+    [
+      8501,
+      721,
+      1,
+      726,
+      0,
+      "STRING"
+    ],
+    [
+      8502,
+      707,
+      0,
+      726,
+      1,
+      "STRING"
+    ],
+    [
+      8503,
+      719,
+      0,
+      726,
+      2,
       "STRING"
     ]
   ],

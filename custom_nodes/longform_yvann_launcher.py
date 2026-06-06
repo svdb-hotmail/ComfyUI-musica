@@ -834,6 +834,84 @@ class LongformYvannGeneratedImagesOutput:
         return {"ui": ui, "result": (batch, text)}
 
 
+class LongformYvannFourImagesOutput:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "job_dir": ("STRING", {"multiline": False, "default": ""}),
+                "output_root": ("STRING", {"multiline": False, "default": "output/longform_yvann"}),
+                "batch_or_chunk_filter": ("STRING", {"multiline": False, "default": ""}),
+            }
+        }
+
+    RETURN_TYPES = ("IMAGE", "IMAGE", "IMAGE", "IMAGE", "STRING")
+    RETURN_NAMES = ("yvann_image_1", "yvann_image_2", "yvann_image_3", "yvann_image_4", "image_slot_manifest")
+    FUNCTION = "load_four_images"
+    OUTPUT_NODE = True
+    CATEGORY = "Yvann/Longform"
+
+    def load_four_images(self, job_dir, output_root, batch_or_chunk_filter):
+        resolved_job_dir = Path(str(job_dir).strip()) if str(job_dir).strip() else None
+        if resolved_job_dir and not resolved_job_dir.is_absolute():
+            resolved_job_dir = (_repo_root() / resolved_job_dir).resolve()
+        if not resolved_job_dir or not resolved_job_dir.exists():
+            resolved_job_dir = _latest_manifest_job_dir(_resolve_path(str(output_root)))
+
+        placeholder = torch.zeros((1, 64, 64, 3), dtype=torch.float32)
+        if not resolved_job_dir or not resolved_job_dir.exists():
+            text = "No generated image job found yet. Queue the generator first."
+            return {"ui": {"text": [text]}, "result": (placeholder, placeholder, placeholder, placeholder, text)}
+
+        manifest_path = resolved_job_dir / "manifest" / "chunk_manifest.json"
+        if not manifest_path.exists():
+            text = f"No chunk manifest found in {resolved_job_dir}. Images are not ready yet."
+            return {"ui": {"text": [text]}, "result": (placeholder, placeholder, placeholder, placeholder, text)}
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        filter_value = str(batch_or_chunk_filter).strip().lower()
+        selected_chunk = None
+        for chunk in manifest.get("chunks", []):
+            batch_id = str(chunk.get("visual_batch_id") or "").lower()
+            chunk_id = str(chunk.get("chunk_id") or "").lower()
+            if filter_value and filter_value not in batch_id and filter_value not in chunk_id:
+                continue
+            if chunk.get("assigned_image_paths"):
+                selected_chunk = chunk
+                break
+
+        if selected_chunk is None:
+            text = f"No generated images matched filter '{batch_or_chunk_filter}' in {resolved_job_dir}."
+            return {"ui": {"text": [text]}, "result": (placeholder, placeholder, placeholder, placeholder, text)}
+
+        image_paths = [Path(p) for p in selected_chunk.get("assigned_image_paths", []) if Path(p).exists()]
+        if not image_paths:
+            text = f"Selected chunk has no generated image files yet: {selected_chunk.get('chunk_id')}"
+            return {"ui": {"text": [text]}, "result": (placeholder, placeholder, placeholder, placeholder, text)}
+
+        tensors: list[torch.Tensor] = []
+        ui_images: list[dict[str, str]] = []
+        lines = [
+            f"Selected chunk: {selected_chunk.get('chunk_id')} batch {selected_chunk.get('visual_batch_id')}",
+            f"Time: {_sec_to_hms(float(selected_chunk.get('start_time', 0)))}-{_sec_to_hms(float(selected_chunk.get('end_time', 0)))}",
+            "Yvann expects four image slots:",
+        ]
+        for idx in range(4):
+            image_path = image_paths[min(idx, len(image_paths) - 1)]
+            tensor = _image_to_tensor(image_path).unsqueeze(0)
+            tensors.append(tensor)
+            entry = _image_ui_entry(image_path)
+            if entry:
+                ui_images.append(entry)
+            lines.append(f"slot {idx + 1}: {image_path.name}")
+
+        ui: dict[str, object] = {"text": lines}
+        if ui_images:
+            ui["images"] = ui_images
+        text = "\n".join(lines)
+        return {"ui": ui, "result": (tensors[0], tensors[1], tensors[2], tensors[3], text)}
+
+
 class LongformYvannWorkflowInspector:
     @classmethod
     def INPUT_TYPES(cls):
@@ -927,6 +1005,7 @@ NODE_CLASS_MAPPINGS = {
     "LongformYvannCueSheetBatchPlan": LongformYvannCueSheetBatchPlan,
     "LongformYvannJobStatus": LongformYvannJobStatus,
     "LongformYvannGeneratedImagesOutput": LongformYvannGeneratedImagesOutput,
+    "LongformYvannFourImagesOutput": LongformYvannFourImagesOutput,
     "LongformYvannWorkflowInspector": LongformYvannWorkflowInspector,
 }
 
@@ -937,5 +1016,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "LongformYvannCueSheetBatchPlan": "Yvann Cue Sheet Batch Plan",
     "LongformYvannJobStatus": "Yvann Longform Job Status",
     "LongformYvannGeneratedImagesOutput": "Yvann Generated Batch Images Output",
+    "LongformYvannFourImagesOutput": "Yvann Four Image Slots Output",
     "LongformYvannWorkflowInspector": "Yvann Render Engine Inspector",
 }
