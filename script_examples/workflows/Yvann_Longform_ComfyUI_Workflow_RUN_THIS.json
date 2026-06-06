@@ -68,12 +68,12 @@
         {
           "name": "cue_json",
           "type": "STRING",
-          "links": []
+          "links": null
         },
         {
           "name": "batch_plan",
           "type": "STRING",
-          "links": []
+          "links": null
         }
       ],
       "title": "Cue Sheet Textbox + Parser",
@@ -856,42 +856,42 @@
         {
           "name": "image_backend",
           "type": "STRING",
-          "link": 3008
+          "link": 7002
         },
         {
           "name": "base_seed",
           "type": "INT",
-          "link": 3009
+          "link": 3008
         },
         {
           "name": "resume",
           "type": "BOOLEAN",
-          "link": 3010
+          "link": 3009
         },
         {
           "name": "overwrite",
           "type": "BOOLEAN",
-          "link": 3011
+          "link": 3010
         },
         {
           "name": "final_concat",
           "type": "BOOLEAN",
-          "link": 3012
+          "link": 3011
         },
         {
           "name": "yvann_render_fps",
           "type": "FLOAT",
-          "link": 3013
+          "link": 3012
         },
         {
           "name": "yvann_max_frames",
           "type": "INT",
-          "link": 3014
+          "link": 3013
         },
         {
           "name": "max_chunks",
           "type": "INT",
-          "link": 3015
+          "link": 3014
         }
       ],
       "outputs": [
@@ -1024,12 +1024,12 @@
         {
           "name": "generated_images",
           "type": "IMAGE",
-          "links": []
+          "links": null
         },
         {
           "name": "image_manifest",
           "type": "STRING",
-          "links": []
+          "links": null
         }
       ],
       "title": "Generated Batch Images Output",
@@ -1114,7 +1114,7 @@
         {
           "name": "duration",
           "type": "FLOAT",
-          "links": []
+          "links": null
         }
       ],
       "title": "Visible Audio Input - Load 2h Mix",
@@ -1202,7 +1202,7 @@
         {
           "name": "yvann_node_report",
           "type": "STRING",
-          "links": []
+          "links": null
         }
       ],
       "title": "Actual Yvann Render Engine",
