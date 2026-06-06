@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import wave
 import subprocess
 import sys
 import time
@@ -182,6 +183,36 @@ def _write_text(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
+def _write_audio_input(path: Path, audio: object) -> None:
+    if audio is None:
+        raise ValueError("No audio input was provided")
+    if not isinstance(audio, dict) or "waveform" not in audio:
+        raise ValueError("Unsupported Comfy AUDIO object")
+
+    waveform = audio["waveform"]
+    sample_rate = int(audio.get("sample_rate", 44100))
+    if not torch.is_tensor(waveform):
+        waveform = torch.as_tensor(waveform)
+    waveform = waveform.detach().cpu().float()
+    if waveform.ndim == 3:
+        waveform = waveform[0]
+    if waveform.ndim == 1:
+        waveform = waveform.unsqueeze(0)
+    if waveform.shape[0] > waveform.shape[1]:
+        # Most Comfy audio is channels x samples after batch removal. This keeps
+        # obviously transposed mono/stereo tensors usable.
+        waveform = waveform.T
+    waveform = waveform.clamp(-1.0, 1.0)
+    pcm = (waveform.T.numpy() * 32767.0).astype(np.int16)
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with wave.open(str(path), "wb") as wav_file:
+        wav_file.setnchannels(int(pcm.shape[1]))
+        wav_file.setsampwidth(2)
+        wav_file.setframerate(sample_rate)
+        wav_file.writeframes(pcm.tobytes())
+
+
 def _launch_process(config_path: Path, log_path: Path) -> subprocess.Popen:
     log_path.parent.mkdir(parents=True, exist_ok=True)
     log_file = open(log_path, "a", encoding="utf-8")
@@ -236,6 +267,9 @@ class LongformYvannLauncher:
                 "yvann_min_frames": ("INT", {"default": 24, "min": 8, "max": 1024, "step": 1}),
                 "yvann_max_frames": ("INT", {"default": 480, "min": 8, "max": 2048, "step": 1}),
                 "max_chunks": ("INT", {"default": 0, "min": 0, "max": 100000, "step": 1}),
+            },
+            "optional": {
+                "uploaded_audio": ("AUDIO", {}),
             }
         }
 
@@ -378,6 +412,7 @@ class LongformYvannCueSheetLauncher:
                 "yvann_render_fps": ("FLOAT", {"default": 8.0, "min": 1.0, "max": 60.0, "step": 1.0}),
                 "yvann_max_frames": ("INT", {"default": 480, "min": 8, "max": 2048, "step": 1}),
                 "max_chunks": ("INT", {"default": 0, "min": 0, "max": 100000, "step": 1}),
+                "uploaded_audio": ("AUDIO", {}),
             }
         }
 
@@ -405,6 +440,7 @@ class LongformYvannCueSheetLauncher:
         yvann_render_fps,
         yvann_max_frames,
         max_chunks,
+        uploaded_audio=None,
     ):
         if not bool(launch_now):
             return ("launch_disabled", "", "")
@@ -421,11 +457,16 @@ class LongformYvannCueSheetLauncher:
         config_path = _config_path(resolved_output_root, job_id)
         cue_sheet_path = config_path.with_suffix(".cuesheet.txt")
         _write_text(cue_sheet_path, str(cue_sheet_text).strip() + "\n")
+        if uploaded_audio is not None:
+            audio_source_path = config_path.with_suffix(".uploaded_audio.wav")
+            _write_audio_input(audio_source_path, uploaded_audio)
+        else:
+            audio_source_path = _resolve_path(audio_path)
 
         config = {
             "job_id": job_id,
             "script_path": str(cue_sheet_path),
-            "audio_path": str(_resolve_path(audio_path)),
+            "audio_path": str(audio_source_path),
             "global_style_prompt": global_style_prompt,
             "output_root": str(resolved_output_root),
             "comfy_api_url": "http://127.0.0.1:18188",

@@ -16,11 +16,13 @@ def main() -> int:
     source = repo_root / "script_examples" / "workflows" / "AudioReactive_ImagesToVideo_Yvann (Longform Launcher).json"
     run_me_source = repo_root / "script_examples" / "workflows" / "Yvann_Longform_Batch_Generator_RUN_ME.json"
     human_workflow_source = repo_root / "script_examples" / "workflows" / "Yvann_Longform_ComfyUI_Workflow_RUN_THIS.json"
+    all_in_one_source = repo_root / "script_examples" / "workflows" / "Yvann_Longform_All_In_One_2H_Video_WORKFLOW.json"
     target_base = repo_root / "custom_nodes" / "comfyui_yvann-nodes" / "example_workflows" / "AudioReactive_ImagesToVideo_Yvann.json"
     user_target = repo_root / "user" / "default" / "workflows" / "AudioReactive_ImagesToVideo_Yvann.json"
     user_longform_target = repo_root / "user" / "default" / "workflows" / "AudioReactive_ImagesToVideo_Yvann_Longform_Batch_Generator.json"
     user_run_me_target = repo_root / "user" / "default" / "workflows" / "Yvann_Longform_Batch_Generator_RUN_ME.json"
     user_human_workflow_target = repo_root / "user" / "default" / "workflows" / "Yvann_Longform_ComfyUI_Workflow_RUN_THIS.json"
+    user_all_in_one_target = repo_root / "user" / "default" / "workflows" / "Yvann_Longform_All_In_One_2H_Video_WORKFLOW.json"
 
     if not source.exists():
         raise FileNotFoundError(f"Source template not found: {source}")
@@ -28,6 +30,8 @@ def main() -> int:
         raise FileNotFoundError(f"RUN ME workflow not found: {run_me_source}")
     if not human_workflow_source.exists():
         raise FileNotFoundError(f"Human workflow not found: {human_workflow_source}")
+    if not all_in_one_source.exists():
+        raise FileNotFoundError(f"All-in-one workflow not found: {all_in_one_source}")
     if not target_base.parent.exists():
         raise FileNotFoundError(f"Yvann workflow path not found: {target_base.parent}")
 
@@ -45,6 +49,8 @@ def main() -> int:
         print(f"Applied RUN ME launcher workflow: {user_run_me_target}")
         shutil.copy2(human_workflow_source, user_human_workflow_target)
         print(f"Applied human ComfyUI workflow: {user_human_workflow_target}")
+        shutil.copy2(all_in_one_source, user_all_in_one_target)
+        print(f"Applied all-in-one Yvann workflow: {user_all_in_one_target}")
 
     return 0
 
