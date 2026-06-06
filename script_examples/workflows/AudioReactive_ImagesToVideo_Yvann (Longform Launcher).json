@@ -1722,12 +1722,12 @@
       "id": 528,
       "type": "MarkdownNote",
       "pos": [
-        1460,
-        1620
+        -1455.5405058674485,
+        2435.2460889442655
       ],
       "size": [
-        560,
-        220
+        1000,
+        130
       ],
       "flags": {},
       "order": 28,
@@ -1746,133 +1746,32 @@
       "id": 529,
       "type": "LongformYvannLauncher",
       "pos": [
-        1468,
-        1865
+        -1455.5405058674485,
+        2595.2460889442655
       ],
       "size": [
-        520,
-        730
+        1000,
+        640
       ],
       "flags": {},
       "order": 29,
       "mode": 0,
-      "inputs": [
-        {
-          "name": "script_path",
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "audio_path",
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "global_style_prompt",
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "output_root",
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "workflow_template_path",
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "chunk_duration_seconds",
-          "type": "FLOAT",
-          "link": null
-        },
-        {
-          "name": "overlap_seconds",
-          "type": "FLOAT",
-          "link": null
-        },
-        {
-          "name": "images_per_chunk",
-          "type": "INT",
-          "link": null
-        },
-        {
-          "name": "image_backend",
-          "type": "COMBO",
-          "link": null
-        },
-        {
-          "name": "continuity_mode",
-          "type": "COMBO",
-          "link": null
-        },
-        {
-          "name": "seed_strategy",
-          "type": "COMBO",
-          "link": null
-        },
-        {
-          "name": "base_seed",
-          "type": "INT",
-          "link": null
-        },
-        {
-          "name": "resume",
-          "type": "BOOLEAN",
-          "link": null
-        },
-        {
-          "name": "overwrite",
-          "type": "BOOLEAN",
-          "link": null
-        },
-        {
-          "name": "stop_on_failure",
-          "type": "BOOLEAN",
-          "link": null
-        },
-        {
-          "name": "final_concat",
-          "type": "BOOLEAN",
-          "link": null
-        },
-        {
-          "name": "yvann_render_fps",
-          "type": "FLOAT",
-          "link": null
-        },
-        {
-          "name": "yvann_min_frames",
-          "type": "INT",
-          "link": null
-        },
-        {
-          "name": "yvann_max_frames",
-          "type": "INT",
-          "link": null
-        },
-        {
-          "name": "max_chunks",
-          "type": "INT",
-          "link": null
-        }
-      ],
+      "inputs": [],
       "outputs": [
         {
           "name": "job_id",
           "type": "STRING",
-          "links": null
+          "links": []
         },
         {
           "name": "job_dir",
           "type": "STRING",
-          "links": null
+          "links": []
         },
         {
           "name": "config_path",
           "type": "STRING",
-          "links": null
+          "links": []
         }
       ],
       "title": "Launch Longform Yvann Job (Wired)",
@@ -1909,12 +1808,12 @@
       "id": 530,
       "type": "MarkdownNote",
       "pos": [
-        1460,
-        2620
+        -435.5405058674485,
+        2595.2460889442655
       ],
       "size": [
-        560,
-        210
+        600,
+        300
       ],
       "flags": {},
       "order": 30,
@@ -1933,12 +1832,12 @@
       "id": 531,
       "type": "MarkdownNote",
       "pos": [
-        1460,
-        2835
+        -435.5405058674485,
+        2915.2460889442655
       ],
       "size": [
-        560,
-        180
+        600,
+        120
       ],
       "flags": {},
       "order": 31,
