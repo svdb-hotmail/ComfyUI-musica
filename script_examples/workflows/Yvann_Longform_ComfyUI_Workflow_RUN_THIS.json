@@ -1,8 +1,8 @@
 {
   "id": "yvann-longform-comfyui-workflow-run-this",
   "revision": 0,
-  "last_node_id": 104,
-  "last_link_id": 5005,
+  "last_node_id": 107,
+  "last_link_id": 6002,
   "nodes": [
     {
       "id": 1,
@@ -23,7 +23,7 @@
       "title": "START HERE",
       "properties": {},
       "widgets_values": [
-        "### START HERE - Real ComfyUI Workflow\n1. Paste/edit the cue sheet in the Yvann Cue Sheet Parser textbox.\n2. Set audio_path to the 2-hour mix in ComfyUI input.\n3. Press Queue.\nThe parser outputs a batch plan; the generator launches the longform job; Generated Batch Images Output exposes the generated images as an IMAGE output and thumbnails.\nSet max_chunks=2 for a smoke test, or 0 for the full mix. Set launch_now=false and Queue to refresh outputs without starting another job."
+        "### START HERE - Real ComfyUI Workflow\n1. Paste/edit the cue sheet in the Yvann Cue Sheet Parser textbox.\n2. Set audio_path to the 2-hour mix in ComfyUI input. That same value feeds the visible audio loader/preview.\n3. Press Queue.\nThe parser outputs a batch plan; the generator launches the longform job; Generated Batch Images Output exposes the generated images as an IMAGE output and thumbnails.\nSet max_chunks=2 for a smoke test, or 0 for the full mix. Set launch_now=false and Queue to refresh outputs without starting another job."
       ]
     },
     {
@@ -162,11 +162,12 @@
           "type": "STRING",
           "links": [
             2001,
-            3002
+            3002,
+            6001
           ]
         }
       ],
-      "title": "audio_path",
+      "title": "audio_path - also feeds visible audio loader",
       "properties": {
         "Node name for S&R": "PrimitiveStringMultiline"
       },
@@ -1123,6 +1124,101 @@
       "widgets_values": [
         "### How generated images reach Yvann\nGenerated Batch Images Output is the visible preview/output socket.\nThe actual Yvann render connection happens inside QUEUE THIS: it reads yvann_workflow_path, generates images for each chunk, copies them to ComfyUI input, replaces Yvann LoadImage nodes with those files, replaces LoadAudio with the chunk audio, then queues Yvann output node 410.\nSo: preview output = see images; launcher = feeds images into Yvann per timestamp batch."
       ]
+    },
+    {
+      "id": 105,
+      "type": "VHS_LoadAudio",
+      "pos": [
+        -970,
+        720
+      ],
+      "size": [
+        430,
+        130
+      ],
+      "flags": {},
+      "order": 40,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "audio_file",
+          "type": "STRING",
+          "link": 6001
+        }
+      ],
+      "outputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "links": [
+            6002
+          ]
+        },
+        {
+          "name": "duration",
+          "type": "FLOAT",
+          "links": []
+        }
+      ],
+      "title": "Visible Audio Input - Load 2h Mix",
+      "properties": {
+        "Node name for S&R": "VHS_LoadAudio"
+      },
+      "widgets_values": [
+        "input/Temple_of_the_Scales.mp3",
+        0,
+        0
+      ]
+    },
+    {
+      "id": 106,
+      "type": "PreviewAudio",
+      "pos": [
+        -500,
+        1680
+      ],
+      "size": [
+        360,
+        80
+      ],
+      "flags": {},
+      "order": 41,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 6002
+        }
+      ],
+      "outputs": [],
+      "title": "Preview Selected Audio",
+      "properties": {
+        "Node name for S&R": "PreviewAudio"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 107,
+      "type": "MarkdownNote",
+      "pos": [
+        -970,
+        870
+      ],
+      "size": [
+        430,
+        170
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "AUDIO INPUT",
+      "properties": {},
+      "widgets_values": [
+        "### Audio input\nThe audio_path value feeds this visible loader so you can verify/play the selected mix.\nThe same path also feeds the parser and generator. During rendering, the runner splits this full mix into chunks and injects each chunk into Yvann LoadAudio."
+      ]
     }
   ],
   "links": [
@@ -1341,6 +1437,22 @@
       102,
       3,
       "INT"
+    ],
+    [
+      6001,
+      4,
+      0,
+      105,
+      0,
+      "STRING"
+    ],
+    [
+      6002,
+      105,
+      0,
+      106,
+      0,
+      "AUDIO"
     ]
   ],
   "groups": [],
