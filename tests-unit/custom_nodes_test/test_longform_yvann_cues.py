@@ -1,5 +1,7 @@
+from pathlib import Path
+
 from script_examples.longform_yvann_cue_parser import parse_visual_cue_markers
-from script_examples.longform_yvann_runner import LongformYvannRunner
+from script_examples.longform_yvann_runner import JobConfig, LongformYvannRunner
 
 
 USER_STYLE_CUE_SHEET = """00:00:00  1 Deep Hertz - Melting Sun # Close-up of a colossal heavy-lift rocket on a night launchpad.
@@ -41,3 +43,32 @@ def test_existing_explicit_comment_timestamp_format_still_works():
     assert [cue.cue_id for cue in backend_cues] == ["A", "B"]
     assert preview_cues[0]["summary"] == "Rocket preparing for launch."
     assert backend_cues[1].summary == "Rocket taking off."
+
+
+def test_dense_visual_cues_do_not_force_one_second_render_chunks():
+    cue_sheet = "\n".join(
+        f"00:00:{idx:02d}  {idx + 1} Section {idx + 1} # Visual scene {idx + 1}"
+        for idx in range(31)
+    )
+    config = JobConfig(
+        script_path="script.txt",
+        audio_path="audio.mp3",
+        global_style_prompt="cinematic",
+        output_root="output",
+        render_profile="custom",
+        chunk_duration_seconds=45.0,
+        image_interval_seconds=6.0,
+    )
+    runner = LongformYvannRunner.__new__(LongformYvannRunner)
+    runner.config = config
+    runner._audio_duration = 30.5
+    runner.load_script_text = lambda: cue_sheet
+    runner.audio_chunks_dir = Path("audio_chunks")
+    runner.videos_dir = Path("videos")
+
+    chunks = runner.build_manifest()
+
+    assert len(chunks) == 1
+    assert chunks[0].chunk_duration == 30.5
+    assert chunks[0].visual_cues is not None
+    assert len(chunks[0].visual_cues) == 31

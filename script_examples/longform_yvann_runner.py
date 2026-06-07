@@ -222,6 +222,7 @@ class Chunk:
     visual_batch_start: float | None = None
     visual_batch_end: float | None = None
     visual_batch_image_paths: list[str] | None = None
+    visual_cues: list[dict[str, Any]] | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return dataclasses.asdict(self)
@@ -584,8 +585,8 @@ class LongformYvannRunner:
         safe = re.sub(r"[^A-Za-z0-9_.-]+", "_", batch_id or "unbatched").strip("_") or "unbatched"
         return self.images_dir / safe
 
-    def _image_count_for_duration(self, duration: float) -> int:
-        return max(2, int(math.ceil(duration / max(self.config.image_interval_seconds, 1e-6))))
+    def _image_count_for_duration(self, duration: float, minimum: int = 2) -> int:
+        return max(minimum, int(math.ceil(duration / max(self.config.image_interval_seconds, 1e-6))))
 
     @staticmethod
     def _vae_safe_dimension(value: int) -> int:
@@ -627,17 +628,37 @@ class LongformYvannRunner:
 
         visual_cues = self._extract_visual_cues(script_text, audio_duration)
         timed_sections = self._extract_timed_sections(script_text)
-        split_points = [cue.start_time for cue in visual_cues]
-        boundaries = self._plan_chunk_boundaries(audio_duration, split_points=split_points)
+        boundaries = self._plan_chunk_boundaries(audio_duration, split_points=[])
         sections = self._split_sections(script_text)
+
+        visual_cue_payloads: list[dict[str, Any]] = []
+        previous_cue_summary: str | None = None
+        for cue in visual_cues:
+            cue_summary = f"Visual batch {cue.cue_id}: {' '.join(cue.summary.split())}"
+            cue_frac = ((cue.start_time + cue.end_time) * 0.5) / max(audio_duration, 1e-6)
+            visual_cue_payloads.append(
+                {
+                    "id": cue.cue_id,
+                    "start": cue.start_time,
+                    "end": cue.end_time,
+                    "summary": cue_summary,
+                    "prompt": self._build_prompt(cue_summary, cue_frac, previous_cue_summary),
+                }
+            )
+            previous_cue_summary = cue_summary
 
         chunks: list[Chunk] = []
         prev_summary: str | None = None
         for i, (start, end) in enumerate(boundaries, start=1):
             frac = ((start + end) * 0.5) / max(audio_duration, 1e-6)
             visual_cue = self._find_visual_cue(visual_cues, start, end)
+            overlapping_cues = [cue for cue in visual_cue_payloads if not (float(cue["end"]) <= start or float(cue["start"]) >= end)]
 
-            if visual_cue and self.config.segmentation_mode in {"auto", "timestamped", "cue_sheet"}:
+            if overlapping_cues and self.config.segmentation_mode in {"auto", "timestamped", "cue_sheet"}:
+                summary = " | ".join(str(cue["summary"]) for cue in overlapping_cues[:6])
+                if len(overlapping_cues) > 6:
+                    summary = f"{summary} | plus {len(overlapping_cues) - 6} more visual cues"
+            elif visual_cue and self.config.segmentation_mode in {"auto", "timestamped", "cue_sheet"}:
                 summary = visual_cue.summary
             elif timed_sections and self.config.segmentation_mode in {"auto", "timestamped"}:
                 matching = [x[2] for x in timed_sections if not (x[1] <= start or x[0] >= end)]
@@ -647,7 +668,7 @@ class LongformYvannRunner:
                 summary = sections[section_idx]
 
             summary = " ".join(summary.split())
-            if visual_cue:
+            if visual_cue and not overlapping_cues:
                 summary = f"Visual batch {visual_cue.cue_id}: {summary}"
             scene_prompt = self._build_prompt(summary, frac, prev_summary)
             prev_summary = summary
@@ -672,6 +693,7 @@ class LongformYvannRunner:
                 visual_batch_start=visual_cue.start_time if visual_cue else None,
                 visual_batch_end=visual_cue.end_time if visual_cue else None,
                 visual_batch_image_paths=[],
+                visual_cues=overlapping_cues,
             )
             chunks.append(chunk)
 
@@ -995,20 +1017,34 @@ class LongformYvannRunner:
         if chunk.assigned_image_paths and chunk.visual_batch_image_paths and not self.config.overwrite:
             return
 
-        batch_id = chunk.visual_batch_id or chunk.chunk_id
-        batch_start = chunk.visual_batch_start if chunk.visual_batch_start is not None else chunk.start_time
-        batch_end = chunk.visual_batch_end if chunk.visual_batch_end is not None else chunk.end_time
-        batch_duration = max(batch_end - batch_start, chunk.chunk_duration)
-        batch_count = self._image_count_for_duration(batch_duration)
+        cue_payloads = chunk.visual_cues or []
+        batch_id = chunk.chunk_id if cue_payloads else (chunk.visual_batch_id or chunk.chunk_id)
         batch_dir = self._batch_dir_for(batch_id)
         batch_dir.mkdir(parents=True, exist_ok=True)
 
         batch_images: list[str] = []
         previous_image = self._last_reference_image if self.config.continuity_mode in {"style", "carry"} else None
-        for image_number in range(1, batch_count + 1):
-            prompt = self._variation_prompt(chunk.scene_prompt, batch_id, image_number, batch_count)
-            seed = self._seed_for(chunk.index, image_number, prompt)
-            dst = batch_dir / f"{batch_id}_{image_number:04d}.png"
+        image_jobs: list[tuple[str, str, int, int]] = []
+        if cue_payloads:
+            for cue in cue_payloads:
+                cue_id = str(cue.get("id") or chunk.chunk_id)
+                cue_start = float(cue.get("start", chunk.start_time))
+                cue_end = float(cue.get("end", chunk.end_time))
+                cue_duration = max(0.001, min(cue_end, chunk.end_time) - max(cue_start, chunk.start_time))
+                image_count = self._image_count_for_duration(cue_duration, minimum=1)
+                for image_number in range(1, image_count + 1):
+                    image_jobs.append((cue_id, str(cue.get("prompt") or chunk.scene_prompt), image_number, image_count))
+        else:
+            batch_start = chunk.visual_batch_start if chunk.visual_batch_start is not None else chunk.start_time
+            batch_end = chunk.visual_batch_end if chunk.visual_batch_end is not None else chunk.end_time
+            batch_duration = max(batch_end - batch_start, chunk.chunk_duration)
+            batch_count = self._image_count_for_duration(batch_duration)
+            image_jobs = [(batch_id, chunk.scene_prompt, image_number, batch_count) for image_number in range(1, batch_count + 1)]
+
+        for sequence_index, (image_batch_id, base_prompt, image_number, batch_count) in enumerate(image_jobs, start=1):
+            prompt = self._variation_prompt(base_prompt, image_batch_id, image_number, batch_count)
+            seed = self._seed_for(chunk.index, sequence_index, prompt)
+            dst = batch_dir / f"{sequence_index:04d}_{image_batch_id}_{image_number:04d}.png"
 
             if dst.exists() and not self.config.overwrite:
                 batch_images.append(str(dst))
@@ -1287,6 +1323,8 @@ class LongformYvannRunner:
                 "0",
                 "-i",
                 str(concat_list),
+                "-t",
+                f"{self.get_audio_duration(self.audio_path):.3f}",
                 "-vf",
                 final_filter,
                 "-r",

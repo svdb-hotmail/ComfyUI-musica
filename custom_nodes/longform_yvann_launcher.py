@@ -643,7 +643,15 @@ class LongformYvannAudioAnalysisPreview:
     OUTPUT_NODE = True
     CATEGORY = "Yvann/Longform"
 
+    @classmethod
+    def VALIDATE_INPUTS(cls, chunk_duration_seconds=None, max_chunks=None):
+        return True
+
     def preview(self, cue_sheet_text, audio_source, chunk_duration_seconds, max_chunks):
+        chunk_duration_seconds = float(chunk_duration_seconds or 45.0)
+        if chunk_duration_seconds < 1.0:
+            chunk_duration_seconds = 45.0
+        max_chunks = max(0, int(max_chunks or 0))
         audio_config = _decode_json_object(audio_source, "audio_source")
         audio_path = Path(str(audio_config.get("audio_path", "")))
         if not audio_path.exists():
@@ -653,7 +661,7 @@ class LongformYvannAudioAnalysisPreview:
         duration = _audio_duration(audio_path)
         cues = _extract_cues(str(cue_sheet_text), duration)
         total_duration = duration or (float(cues[-1]["end"]) if cues else 0.0)
-        chunks = _plan_chunks(total_duration, [float(cue["start"]) for cue in cues], float(chunk_duration_seconds), int(max_chunks)) if total_duration else []
+        chunks = _plan_chunks(total_duration, [], chunk_duration_seconds, max_chunks) if total_duration else []
         preview_path = _repo_root() / "output" / "yvann_audio_analysis" / f"waveform_{audio_path.stem}_{int(time.time())}.png"
         try:
             _write_audio_waveform_preview(audio_path, preview_path)
