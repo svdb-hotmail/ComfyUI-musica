@@ -522,6 +522,11 @@ class LongformYvannRenderProfile:
     FUNCTION = "build"
     CATEGORY = "Yvann/Longform"
 
+    @classmethod
+    def VALIDATE_INPUTS(cls, render_profile=None):
+        _normalize_render_profile(render_profile)
+        return True
+
     def build(self, render_profile, custom_image_interval_seconds, custom_render_width, custom_render_height, custom_t2i_steps, custom_t2i_cfg, custom_yvann_render_fps, custom_yvann_min_frames, custom_yvann_max_frames, custom_ffmpeg_crf):
         profile = _normalize_render_profile(render_profile)
         payload = {
@@ -745,6 +750,11 @@ class LongformYvannLauncher:
     FUNCTION = "launch_job"
     OUTPUT_NODE = True
     CATEGORY = "Yvann/Longform"
+
+    @classmethod
+    def VALIDATE_INPUTS(cls, render_profile=None):
+        _normalize_render_profile(render_profile)
+        return True
 
     def launch_job(
         self,
