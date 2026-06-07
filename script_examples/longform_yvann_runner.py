@@ -38,6 +38,11 @@ try:
 except ImportError as exc:  # pragma: no cover
     raise SystemExit("Missing dependency: pillow. Install with `pip install pillow`.") from exc
 
+try:
+    from longform_yvann_cue_parser import parse_visual_cue_markers
+except ImportError:  # pragma: no cover
+    from script_examples.longform_yvann_cue_parser import parse_visual_cue_markers
+
 
 def now_utc() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -491,47 +496,14 @@ class LongformYvannRunner:
         return [x for x in out if x[1] > x[0]]
 
     def _extract_visual_cues(self, script_text: str, total_duration: float) -> list[VisualCue]:
-        lines = [ln.rstrip() for ln in script_text.splitlines()]
-        marker_pattern = re.compile(
-            r"#\s*(?:(?P<label>[A-Z])\.\s*)?(?P<time>\d{1,2}:\d{2}:\d{2}(?:\.\d{1,3})?)\s*(?P<text>.*)$",
-            re.IGNORECASE,
-        )
-        continuation_pattern = re.compile(r"^\s*#\s*(?P<text>.+?)\s*$")
-
-        markers: list[tuple[str, float, list[str]]] = []
-        for line in lines:
-            marker = marker_pattern.search(line)
-            if marker:
-                label = (marker.group("label") or f"cue_{len(markers) + 1:02d}").upper()
-                start_time = hms_to_sec(marker.group("time"))
-                text = marker.group("text").strip()
-                markers.append((label, start_time, [text] if text else []))
-                continue
-
-            continuation = continuation_pattern.match(line)
-            if continuation and markers:
-                text = continuation.group("text").strip()
-                if text:
-                    markers[-1][2].append(text)
-
         cues: list[VisualCue] = []
-        for idx, (label, start_time, parts) in enumerate(markers):
-            if start_time >= total_duration:
-                continue
-            next_start = total_duration
-            for _next_label, candidate_start, _next_parts in markers[idx + 1:]:
-                if candidate_start > start_time:
-                    next_start = min(candidate_start, total_duration)
-                    break
-            summary = " ".join(" ".join(parts).split())
-            if not summary:
-                continue
+        for cue in parse_visual_cue_markers(script_text, total_duration):
             cues.append(
                 VisualCue(
-                    cue_id=label,
-                    start_time=max(0.0, start_time),
-                    end_time=max(start_time, next_start),
-                    summary=summary,
+                    cue_id=str(cue["id"]),
+                    start_time=float(cue["start"]),
+                    end_time=float(cue["end"]),
+                    summary=str(cue["summary"]),
                 )
             )
 

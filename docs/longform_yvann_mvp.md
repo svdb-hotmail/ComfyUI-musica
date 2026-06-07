@@ -84,7 +84,15 @@ python script_examples/longform_yvann_runner.py --config script_examples/longfor
 
 ## Cue-sheet input format
 
-For long mixes, keep the music track list and add visual switch markers in comments:
+For long mixes, keep the music track list and add visual switch markers in comments. The dashboard accepts either the simple line-timestamp form:
+
+```text
+00:00:00  1 Artist - Track Title                  # Rocket preparing for launch
+00:00:01  2 Artist - Next Track                   # Rocket taking off, stage separation
+00:00:02  3 Artist - Another Track                # Satellite images of Earth and planets
+```
+
+or an explicit visual-batch timestamp inside the comment:
 
 ```text
 00:00:00  1 Artist - Track Title                  # A. 00:00:00 Rocket preparing for launch
@@ -93,7 +101,7 @@ For long mixes, keep the music track list and add visual switch markers in comme
 00:13:25  4 Artist - Later Track                  # C. 00:11:30 Satellite images of Earth and planets
 ```
 
-The timestamp after the cue label controls when that visual batch starts. Continuation comment lines without a timestamp are appended to the previous visual batch prompt. The runner generates a folder of varied images for each timestamp span, at the configured cadence such as one image every 5 seconds. It still renders in manageable audio/video chunks, but each chunk points Yvann at the full active scene folder through the folder batch loader.
+In the simple form, the timestamp at the beginning of the line controls when that visual batch starts. In the explicit form, the timestamp after the cue label controls it. Continuation comment lines without a timestamp are appended to the previous visual batch prompt. The runner generates a folder of varied images for each timestamp span, at the configured cadence such as one image every 5 seconds. It still renders in manageable audio/video chunks, but each chunk points Yvann at the full active scene folder through the folder batch loader.
 
 See:
 
