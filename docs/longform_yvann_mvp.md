@@ -1,6 +1,6 @@
 # Yvann Longform Script+Audio MVP
 
-This feature adds an additive long-form orchestration runner for Yvann "Images to Video" workflows.
+This feature adds a minimal long-form orchestration runner for the Yvann "Images to Video" workflow.
 
 ## Added files
 
@@ -8,7 +8,7 @@ This feature adds an additive long-form orchestration runner for Yvann "Images t
 - `script_examples/longform_yvann_job_config.example.json`
 - `custom_nodes/longform_yvann_launcher.py`
 - `scripts/required_custom_nodes.json` (updated)
-- `script_examples/workflows/AudioReactive_ImagesToVideo_Yvann (Longform Launcher).json`
+- `script_examples/workflows/AudioReactive_ImagesToVideo_Yvann (Longform Launcher).json` (the compact dashboard installed into `user/default/workflows`)
 - `scripts/apply_yvann_longform_template.py`
 
 ## What it does
@@ -28,7 +28,7 @@ This feature adds an additive long-form orchestration runner for Yvann "Images t
   - `procedural` (fallback deterministic abstract image generator)
 - Generates one varied image every `image_interval_seconds` for each cue/timestamp span.
 - Feeds the whole generated scene folder into Yvann through a standard KJNodes folder image-batch loader (`LoadImagesFromFolderKJ`).
-- Converts Yvann full workflow JSON to API format via `/workflow/convert`.
+- Converts the Yvann Images-to-Video workflow JSON to API format via `/workflow/convert`.
 - Injects the generated scene image folder and chunk audio into the Yvann workflow.
 - Scales Yvann render workload per chunk using `yvann_render_fps`, `yvann_min_frames`, and `yvann_max_frames`.
 - Executes per chunk with partial execution target set to selected `VHS_VideoCombine` output node.
@@ -38,15 +38,38 @@ This feature adds an additive long-form orchestration runner for Yvann "Images t
 
 ## ComfyUI launcher node
 
-The repo now includes a custom node named `Yvann Longform Launcher` under the `Yvann/Longform` category.
+The repo now includes the core longform nodes under the `Yvann/Longform` category:
 
-It lets you launch jobs directly from a workflow using the ComfyUI server process, and it exposes job status at:
+- `Yvann Longform Audio Source`
+- `Yvann Longform Render Profile`
+- `Yvann Longform Execution Settings`
+- `Yvann Longform Image-to-Video`
+- `Yvann Longform Launcher`
+- `Yvann Longform Audio Analysis Preview`
+- `Yvann Longform Batch Plan`
+- `Yvann Longform Job Status`
+- `Yvann Longform Cancel Job`
+- `Yvann Longform Generated Images`
+- `Yvann Longform Scene Batch`
+- `Yvann Workflow Inspector`
+
+It lets you launch jobs directly from a workflow using the ComfyUI server process. The workflow acts as a compact dashboard for backend work: closing or refreshing the browser does not stop the runner. Audio selection/upload, render profile, and Yvann execution settings are separate linked nodes that feed the job launcher. The full Yvann render graph is not opened as the dashboard; it stays hidden under `custom_nodes/comfyui_yvann-nodes/example_workflows/AudioReactive_ImagesToVideo_Yvann.json` and is loaded by the backend runner.
+
+It exposes persisted job status at:
 
 ```text
 /yvann_longform/jobs
 ```
 
-The node writes a launch config next to the job outputs and starts the runner in the background.
+The node writes a launch config and process record next to the job outputs and starts the runner in the background. The dashboard reads backend-owned `job_state.json`, `manifest/chunk_manifest.json`, and process records.
+
+Cancellation is requested through the backend at:
+
+```text
+POST /yvann_longform/jobs/<job_id>/cancel
+```
+
+or by queuing `Yvann Longform Cancel Job`. Cancellation writes `cancel.requested` into the job folder. The runner checks that marker between stages and while waiting for ComfyUI prompts, interrupts active prompts, and marks the job cancelled.
 
 ## Run
 
@@ -77,16 +100,25 @@ script_examples/longform_yvann_cuesheet.example.txt
 
 ## Apply the longform-modified base Yvann template
 
-This copies the tracked longform-enhanced template into the Yvann base workflow path.
+This copies the tracked compact dashboard into `user/default/workflows/AudioReactive_ImagesToVideo_Yvann.json`. It intentionally installs only the longform dashboard and avoids the older all-in-one, preview, inspection, and raw render-graph canvases.
 
 ```bash
 python scripts/apply_yvann_longform_template.py --repo-root . --apply-user-workflow
 ```
 
-Target paths updated by this command:
+Target path updated by this command:
 
-- `custom_nodes/comfyui_yvann-nodes/example_workflows/AudioReactive_ImagesToVideo_Yvann.json`
 - `user/default/workflows/AudioReactive_ImagesToVideo_Yvann.json` (when `--apply-user-workflow` is set)
+
+## Apply on a new RTX 6000PRO container
+
+After pulling this fork on a fresh container, run:
+
+```bash
+bash scripts/apply_rtx6000pro_longform_optimizations.sh
+```
+
+The script validates the runner/custom nodes, applies the single compact dashboard workflow, removes stale unused workflow copies, sets ComfyUI launch args for `--highvram` and `--enable-triton-backend`, then restarts the supervisor `comfyui` process when available. SageAttention is not enabled by default because this workflow can hit unsupported attention head dimensions and fall back noisily to PyTorch attention.
 
 Dry-run mode (planning/chunking/image generation only):
 
@@ -122,7 +154,7 @@ For each run:
 
 ## Notes
 
-- Existing Yvann workflows are unchanged.
-- This is additive and external to default short-form flows.
+- Only the longform Images-to-Video path is installed by the template script.
+- The final concatenated MP4 is normalized to 1280x720 at 24fps.
 - For faster chunk turnaround, default output target is `First Pass | Low Res`.
 - Switch `image_backend` to `procedural` if checkpoint-based image generation fails.
