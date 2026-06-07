@@ -405,16 +405,16 @@ def _audio_files() -> list[str]:
     input_root = _repo_root() / "input"
     extensions = {".wav", ".mp3", ".flac", ".ogg", ".m4a", ".aac"}
     fallback = "input/Temple_of_the_Scales.mp3"
+    files = [""]
     if not input_root.exists():
-        return [fallback]
-    files = []
+        return files
     for path in sorted(input_root.rglob("*")):
         if path.is_file() and path.suffix.lower() in extensions:
             try:
                 files.append("input/" + str(path.relative_to(input_root)).replace("\\", "/"))
             except Exception:
                 files.append(str(path))
-    if fallback not in files:
+    if len(files) == 1 and (_repo_root() / fallback).exists():
         files.append(fallback)
     return files
 
@@ -546,14 +546,45 @@ class LongformYvannRenderProfile:
         return (json.dumps(payload, ensure_ascii=True), summary)
 
 
+class LongformYvannCueSheetSource:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "cue_sheet_text": (
+                    "STRING",
+                    {
+                        "multiline": True,
+                        "tooltip": "Single source of truth for the longform cue sheet. Link this into both launcher and preview nodes.",
+                        "default": (
+                            "00:00:00  1 Track / section name  # A. 00:00:00 Describe the first visual scene here.\n"
+                            "00:00:45  2 Next section          # B. 00:00:45 Describe the next visual scene here."
+                        ),
+                    },
+                ),
+            }
+        }
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("cue_sheet_text",)
+    FUNCTION = "emit"
+    CATEGORY = "Yvann/Longform"
+
+    def emit(self, cue_sheet_text):
+        text = str(cue_sheet_text).strip()
+        if not text:
+            raise ValueError("cue_sheet_text is empty")
+        return (text,)
+
+
 class LongformYvannAudioSource:
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
                 "source_mode": (["uploaded_audio", "input_file", "path"], {"default": "input_file", "tooltip": "Use uploaded_audio when an AUDIO input is connected, pick an existing input file, or type a path."}),
-                "input_audio_file": (_audio_files(), {"default": _audio_files()[0], "tooltip": "Existing audio under the ComfyUI input folder."}),
-                "audio_path": ("STRING", {"multiline": False, "default": "input/Temple_of_the_Scales.mp3", "tooltip": "Used when source_mode is path. Relative paths resolve from the ComfyUI root."}),
+                "input_audio_file": (_audio_files(), {"default": "", "tooltip": "Existing audio under the ComfyUI input folder."}),
+                "audio_path": ("STRING", {"multiline": False, "default": "", "tooltip": "Used when source_mode is path. Relative paths resolve from the ComfyUI root."}),
             },
             "optional": {
                 "uploaded_audio": ("AUDIO", {"tooltip": "Connect a LoadAudio/UploadAudio style node here. The audio is written to input/yvann_uploads for backend use."}),
@@ -572,10 +603,14 @@ class LongformYvannAudioSource:
             _write_audio_input(target, uploaded_audio)
             resolved = target
         elif mode == "path":
+            if not str(audio_path).strip():
+                raise ValueError("audio_path is empty. Type an audio path or switch source_mode to input_file/uploaded_audio.")
             resolved = _resolve_path(str(audio_path))
         else:
             selected = str(input_audio_file).strip()
-            resolved = _resolve_path(selected) if selected else _resolve_path(str(audio_path))
+            if not selected:
+                raise ValueError("No existing audio file selected. Pick an input_audio_file or switch source_mode to uploaded_audio/path.")
+            resolved = _resolve_path(selected)
         payload = {"audio_path": str(resolved), "source_mode": mode}
         return (json.dumps(payload, ensure_ascii=True), str(resolved))
 
@@ -1551,6 +1586,7 @@ async def cancel_job(request):
 
 NODE_CLASS_MAPPINGS = {
     "LongformYvannLauncher": LongformYvannLauncher,
+    "LongformYvannCueSheetSource": LongformYvannCueSheetSource,
     "LongformYvannRenderProfile": LongformYvannRenderProfile,
     "LongformYvannAudioSource": LongformYvannAudioSource,
     "LongformYvannExecutionSettings": LongformYvannExecutionSettings,
@@ -1567,6 +1603,7 @@ NODE_CLASS_MAPPINGS = {
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "LongformYvannLauncher": "Yvann Longform Launcher",
+    "LongformYvannCueSheetSource": "Yvann Longform Cue Sheet",
     "LongformYvannRenderProfile": "Yvann Longform Render Profile",
     "LongformYvannAudioSource": "Yvann Longform Audio Source",
     "LongformYvannExecutionSettings": "Yvann Longform Execution Settings",

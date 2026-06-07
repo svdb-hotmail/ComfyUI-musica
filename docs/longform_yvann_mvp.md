@@ -41,6 +41,7 @@ This feature adds a minimal long-form orchestration runner for the Yvann "Images
 The repo now includes the core longform nodes under the `Yvann/Longform` category:
 
 - `Yvann Longform Audio Source`
+- `Yvann Longform Cue Sheet`
 - `Yvann Longform Render Profile`
 - `Yvann Longform Execution Settings`
 - `Yvann Longform Image-to-Video`
@@ -53,7 +54,9 @@ The repo now includes the core longform nodes under the `Yvann/Longform` categor
 - `Yvann Longform Scene Batch`
 - `Yvann Workflow Inspector`
 
-It lets you launch jobs directly from a workflow using the ComfyUI server process. The workflow acts as a compact dashboard for backend work: closing or refreshing the browser does not stop the runner. Audio selection/upload, render profile, and Yvann execution settings are separate linked nodes that feed the job launcher. The full Yvann render graph is not opened as the dashboard; it stays hidden under `custom_nodes/comfyui_yvann-nodes/example_workflows/AudioReactive_ImagesToVideo_Yvann.json` and is loaded by the backend runner.
+It lets you launch jobs directly from a workflow using the ComfyUI server process. The workflow acts as a compact dashboard for backend work: closing or refreshing the browser does not stop the runner. Audio selection/upload, cue-sheet text, render profile, and Yvann execution settings are separate linked nodes that feed the job launcher and preview nodes. The preview therefore reads the same cue sheet the backend job will launch with, instead of carrying its own duplicate text. The full Yvann render graph is not opened as the dashboard; it stays hidden under `custom_nodes/comfyui_yvann-nodes/example_workflows/AudioReactive_ImagesToVideo_Yvann.json` and is loaded by the backend runner.
+
+The audio source node intentionally starts without a fixed sample path in the dashboard. Select an uploaded/local `AUDIO` input, choose an existing file under `input/`, or type a path explicitly before launching.
 
 It exposes persisted job status at:
 

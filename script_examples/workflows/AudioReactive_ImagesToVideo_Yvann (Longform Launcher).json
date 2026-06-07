@@ -1,8 +1,8 @@
 {
   "id": "9a3b4762-c392-4aaf-8b28-00b23b5d8cb8",
   "revision": 2,
-  "last_node_id": 10,
-  "last_link_id": 9,
+  "last_node_id": 11,
+  "last_link_id": 11,
   "nodes": [
     {
       "id": 1,
@@ -42,9 +42,31 @@
       ],
       "title": "Select or upload audio",
       "properties": {"Node name for S&R": "LongformYvannAudioSource"},
-      "widgets_values": ["input_file", "input/Temple_of_the_Scales.mp3", "input/Temple_of_the_Scales.mp3"],
+      "widgets_values": ["input_file", "", ""],
       "color": "#234",
       "bgcolor": "#346"
+    },
+    {
+      "id": 11,
+      "type": "LongformYvannCueSheetSource",
+      "pos": [-270, -520],
+      "size": [560, 190],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {"name": "cue_sheet_text", "type": "STRING", "link": null}
+      ],
+      "outputs": [
+        {"name": "cue_sheet_text", "type": "STRING", "links": [10, 11]}
+      ],
+      "title": "Cue sheet and visual plan",
+      "properties": {"Node name for S&R": "LongformYvannCueSheetSource"},
+      "widgets_values": [
+        "00:00:00  1 Track / section name  # A. 00:00:00 Describe the first visual scene here.\n00:00:45  2 Next section          # B. 00:00:45 Describe the next visual scene here."
+      ],
+      "color": "#243",
+      "bgcolor": "#365"
     },
     {
       "id": 3,
@@ -127,11 +149,11 @@
       "pos": [-270, -300],
       "size": [560, 560],
       "flags": {},
-      "order": 4,
+      "order": 5,
       "mode": 0,
       "inputs": [
         {"name": "launch_now", "type": "BOOLEAN", "link": null},
-        {"name": "cue_sheet_text", "type": "STRING", "link": null},
+        {"name": "cue_sheet_text", "type": "STRING", "link": 10},
         {"name": "global_style_prompt", "type": "STRING", "link": null},
         {"name": "output_root", "type": "STRING", "link": null},
         {"name": "audio_config", "type": "YVANN_AUDIO_SOURCE", "link": 1},
@@ -147,7 +169,6 @@
       "properties": {"Node name for S&R": "LongformYvannCueSheetLauncher"},
       "widgets_values": [
         true,
-        "00:00:00  1 Track / section name  # A. 00:00:00 Describe the first visual scene here.\n00:00:45  2 Next section          # B. 00:00:45 Describe the next visual scene here.",
         "cinematic audio-reactive visuals, coherent motion, immersive lighting, consistent cyberpunk art style",
         "output/longform_yvann"
       ],
@@ -160,10 +181,10 @@
       "pos": [370, -300],
       "size": [500, 330],
       "flags": {},
-      "order": 5,
+      "order": 6,
       "mode": 0,
       "inputs": [
-        {"name": "cue_sheet_text", "type": "STRING", "link": null},
+        {"name": "cue_sheet_text", "type": "STRING", "link": 11},
         {"name": "audio_source", "type": "YVANN_AUDIO_SOURCE", "link": 2},
         {"name": "chunk_duration_seconds", "type": "FLOAT", "link": null},
         {"name": "max_chunks", "type": "INT", "link": null}
@@ -174,11 +195,7 @@
       ],
       "title": "Preview audio analysis and cue plan",
       "properties": {"Node name for S&R": "LongformYvannAudioAnalysisPreview"},
-      "widgets_values": [
-        "00:00:00  1 Track / section name  # A. 00:00:00 Describe the first visual scene here.\n00:00:45  2 Next section          # B. 00:00:45 Describe the next visual scene here.",
-        45.0,
-        0
-      ],
+      "widgets_values": [45.0, 0],
       "color": "#234",
       "bgcolor": "#346"
     },
@@ -188,7 +205,7 @@
       "pos": [370, 80],
       "size": [500, 260],
       "flags": {},
-      "order": 6,
+      "order": 7,
       "mode": 0,
       "inputs": [
         {"name": "job_id", "type": "STRING", "link": 5},
@@ -209,7 +226,7 @@
       "pos": [370, 390],
       "size": [500, 250],
       "flags": {},
-      "order": 7,
+      "order": 8,
       "mode": 0,
       "inputs": [
         {"name": "job_dir", "type": "STRING", "link": 9},
@@ -233,7 +250,7 @@
       "pos": [940, 80],
       "size": [420, 210],
       "flags": {},
-      "order": 8,
+      "order": 9,
       "mode": 0,
       "inputs": [
         {"name": "cancel_now", "type": "BOOLEAN", "link": null},
@@ -256,7 +273,7 @@
       "pos": [940, 340],
       "size": [420, 230],
       "flags": {},
-      "order": 9,
+      "order": 10,
       "mode": 0,
       "inputs": [
         {"name": "yvann_workflow_path", "type": "STRING", "link": null}
@@ -280,7 +297,9 @@
     [6, 5, 1, 7, 1, "STRING"],
     [7, 5, 2, 7, 2, "STRING"],
     [8, 5, 0, 9, 1, "STRING"],
-    [9, 5, 1, 8, 0, "STRING"]
+    [9, 5, 1, 8, 0, "STRING"],
+    [10, 11, 0, 5, 1, "STRING"],
+    [11, 11, 0, 6, 0, "STRING"]
   ],
   "groups": [
     {
@@ -294,7 +313,7 @@
     {
       "id": 2,
       "title": "Backend job and inspection",
-      "bounding": [-310, -350, 1710, 1040],
+      "bounding": [-310, -570, 1710, 1260],
       "color": "#3f789e",
       "font_size": 24,
       "flags": {}
