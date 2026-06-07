@@ -82,6 +82,10 @@ def atomic_write_json(path: Path, data: dict[str, Any]) -> None:
     tmp.replace(path)
 
 
+class JobCancelled(RuntimeError):
+    pass
+
+
 @dataclasses.dataclass
 class JobConfig:
     script_path: str
@@ -102,12 +106,15 @@ class JobConfig:
     negative_prompt: str = "low quality, blurry, watermark, text artifacts"
     continuity_mode: str = "style"  # independent | style | carry
 
-    render_profile: str = "dj_final"  # dj_final | preview_fast | custom
+    render_profile: str = "balanced"  # draft | balanced | final | custom
+    profile_behavior: str = ""
     image_backend: str = "procedural"  # procedural | comfy_api
     images_per_chunk: int = 1
     image_interval_seconds: float = 5.0
     image_width: int = 1280
     image_height: int = 720
+    img2img_denoise: float = 0.45
+    cross_scene_img2img_denoise: float = 0.65
 
     comfy_t2i_checkpoint: str = "DreamShaper_8_pruned.safetensors"
     comfy_t2i_steps: int = 10
@@ -125,9 +132,13 @@ class JobConfig:
     final_concat: bool = True
     ffmpeg_video_codec: str = "libx264"
     ffmpeg_crf: int = 18
+    final_width: int = 1280
+    final_height: int = 720
+    final_fps: float = 24.0
     resume_job_dir: str | None = None
 
     yvann_output_node_title: str = "First Pass | Low Res"
+    yvann_audio_analysis_mode: str = "Full Audio"
     yvann_render_fps: float = 12.0
     yvann_min_frames: int = 24
     yvann_max_frames: int = 720
@@ -139,19 +150,11 @@ class JobConfig:
     def __post_init__(self) -> None:
         profile = str(self.render_profile or "custom").strip().lower()
         self.render_profile = profile
-        if profile in {"dj_final", "final", "production"}:
-            self.render_profile = "dj_final"
-            self.image_interval_seconds = 4.0
-            self.image_width = 1280
-            self.image_height = 720
-            self.comfy_t2i_steps = 10
-            self.comfy_t2i_cfg = 4.5
-            self.yvann_render_fps = 12.0
-            self.yvann_min_frames = 24
-            self.yvann_max_frames = 720
-            self.ffmpeg_crf = 18
-        elif profile in {"preview_fast", "preview", "fast"}:
-            self.render_profile = "preview_fast"
+        self.final_width = 1280
+        self.final_height = 720
+        self.final_fps = 24.0
+        if profile in {"draft", "preview_fast", "preview", "fast"}:
+            self.render_profile = "draft"
             self.image_interval_seconds = 10.0
             self.image_width = 848
             self.image_height = 480
@@ -159,10 +162,38 @@ class JobConfig:
             self.comfy_t2i_cfg = 3.5
             self.yvann_render_fps = 4.0
             self.yvann_min_frames = 8
+            self.yvann_max_frames = 96
+            self.ffmpeg_crf = 23
+            self.img2img_denoise = 0.5
+            self.cross_scene_img2img_denoise = 0.7
+        elif profile in {"balanced", "default"}:
+            self.render_profile = "balanced"
+            self.image_interval_seconds = 6.0
+            self.image_width = 1024
+            self.image_height = 576
+            self.comfy_t2i_steps = 6
+            self.comfy_t2i_cfg = 4.0
+            self.yvann_render_fps = 6.0
+            self.yvann_min_frames = 16
             self.yvann_max_frames = 192
-            self.ffmpeg_crf = 22
+            self.ffmpeg_crf = 20
+            self.img2img_denoise = 0.42
+            self.cross_scene_img2img_denoise = 0.62
+        elif profile in {"dj_final", "final", "production"}:
+            self.render_profile = "final"
+            self.image_interval_seconds = 5.0
+            self.image_width = 1280
+            self.image_height = 720
+            self.comfy_t2i_steps = 8
+            self.comfy_t2i_cfg = 4.5
+            self.yvann_render_fps = 8.0
+            self.yvann_min_frames = 24
+            self.yvann_max_frames = 384
+            self.ffmpeg_crf = 18
+            self.img2img_denoise = 0.38
+            self.cross_scene_img2img_denoise = 0.58
         elif profile != "custom":
-            raise ValueError("render_profile must be 'dj_final', 'preview_fast', or 'custom'")
+            raise ValueError("render_profile must be 'draft', 'balanced', 'final', or 'custom'")
 
 
 @dataclasses.dataclass
@@ -230,6 +261,16 @@ class ComfyClient:
             )
         return r.json()
 
+    def post(self, path: str, payload: dict[str, Any] | None = None) -> None:
+        r = self.session.post(
+            f"{self.base_url}{path}",
+            json=payload or {},
+            timeout=30,
+            verify=self.verify_tls,
+        )
+        if r.status_code >= 400:
+            raise RuntimeError(f"HTTP {r.status_code} on {path}: {r.text[:4000]}")
+
     def queue_prompt(self, prompt: dict[str, Any], partial_targets: list[str] | None = None) -> str:
         payload: dict[str, Any] = {"prompt": prompt}
         if partial_targets:
@@ -237,8 +278,21 @@ class ComfyClient:
         resp = self.post_json("/prompt", payload)
         return str(resp["prompt_id"])
 
-    def wait_for_completion(self, prompt_id: str, poll_seconds: float = 2.0) -> dict[str, Any]:
+    def interrupt(self) -> None:
+        self.post("/interrupt", {})
+
+    def wait_for_completion(
+        self,
+        prompt_id: str,
+        poll_seconds: float = 2.0,
+        cancel_requested: Any | None = None,
+    ) -> dict[str, Any]:
         while True:
+            if cancel_requested is not None and cancel_requested():
+                try:
+                    self.interrupt()
+                finally:
+                    raise JobCancelled(f"Job cancelled while waiting for prompt {prompt_id}")
             history = self.get_json(f"/history/{prompt_id}")
             if history and prompt_id in history:
                 item = history[prompt_id]
@@ -276,8 +330,10 @@ class LongformYvannRunner:
         self.job_config_path = self.job_dir / "job_config.json"
         self.job_state_path = self.job_dir / "job_state.json"
         self.chunk_manifest_path = self.manifest_dir / "chunk_manifest.json"
+        self.cancel_path = self.job_dir / "cancel.requested"
 
         self._audio_duration: float | None = None
+        self._last_reference_image: Path | None = None
         self.client = ComfyClient(config.comfy_api_url, verify_tls=config.comfy_api_verify_tls)
 
     def _set_job_paths_from_dir(self, job_dir: Path) -> None:
@@ -292,6 +348,7 @@ class LongformYvannRunner:
         self.job_config_path = self.job_dir / "job_config.json"
         self.job_state_path = self.job_dir / "job_state.json"
         self.chunk_manifest_path = self.manifest_dir / "chunk_manifest.json"
+        self.cancel_path = self.job_dir / "cancel.requested"
 
     def _find_resumable_job(self) -> Path | None:
         if self.config.resume_job_dir:
@@ -660,6 +717,13 @@ class LongformYvannRunner:
     def _write_job_state(self, state: dict[str, Any]) -> None:
         atomic_write_json(self.job_state_path, state)
 
+    def _cancel_requested(self) -> bool:
+        return self.cancel_path.exists()
+
+    def _raise_if_cancelled(self) -> None:
+        if self._cancel_requested():
+            raise JobCancelled("Job cancellation requested")
+
     def _write_manifest(self, chunks: list[Chunk]) -> None:
         payload = {
             "job_id": self.job_id,
@@ -686,6 +750,10 @@ class LongformYvannRunner:
             "chunk_duration": self.config.chunk_duration_seconds,
             "overlap": self.config.overlap_seconds,
             "image_interval_seconds": self.config.image_interval_seconds,
+            "render_profile": self.config.render_profile,
+            "render_profile_behavior": self.config.profile_behavior or ("custom values active" if self.config.render_profile == "custom" else "profile preset applied"),
+            "yvann_output_node_title": self.config.yvann_output_node_title,
+            "yvann_audio_analysis_mode": self.config.yvann_audio_analysis_mode,
             "number_of_chunks": len(chunks),
             "current_chunk_index": 0,
             "completed_chunks": [],
@@ -693,6 +761,8 @@ class LongformYvannRunner:
             "image_generation_status": {},
             "video_generation_status": {},
             "final_concat_status": "pending",
+            "status": "running",
+            "cancel_requested": False,
             "resume": self.config.resume,
             "timestamps": {"created_at": now_utc(), "last_update": now_utc()},
             "discovered_paths": {
@@ -856,8 +926,9 @@ class LongformYvannRunner:
             },
         }
 
+        self._raise_if_cancelled()
         prompt_id = self.client.queue_prompt(api_prompt, partial_targets=["9"])
-        hist = self.client.wait_for_completion(prompt_id)
+        hist = self.client.wait_for_completion(prompt_id, cancel_requested=self._cancel_requested)
         outputs = hist.get("outputs", {}).get("9", {}).get("images", [])
         if not outputs:
             raise RuntimeError("No image output returned from comfy_t2i backend")
@@ -868,6 +939,84 @@ class LongformYvannRunner:
         p = output_root / first.get("subfolder", "") / first["filename"]
         if not p.exists():
             raise FileNotFoundError(f"Generated image was not found: {p}")
+        return p
+
+    def _stage_reference_image(self, source: Path, seed: int) -> str:
+        input_root = self.comfy_root / "input"
+        ref_dir = input_root / "longform_yvann_refs" / self.job_id
+        ref_dir.mkdir(parents=True, exist_ok=True)
+        staged = ref_dir / f"ref_{seed}_{source.name}"
+        shutil.copy2(source, staged)
+        return staged.relative_to(input_root).as_posix()
+
+    def _generate_comfy_img2img_image(
+        self,
+        prompt: str,
+        negative_prompt: str,
+        seed: int,
+        reference_image: Path,
+        denoise: float,
+    ) -> Path:
+        out_prefix = f"longform_yvann/t2i/{self.job_id}/seed_{seed}_img2img"
+        staged_reference = self._stage_reference_image(reference_image, seed)
+        api_prompt = {
+            "3": {
+                "class_type": "KSampler",
+                "inputs": {
+                    "seed": seed,
+                    "steps": int(self.config.comfy_t2i_steps),
+                    "cfg": float(self.config.comfy_t2i_cfg),
+                    "sampler_name": self.config.comfy_t2i_sampler,
+                    "scheduler": self.config.comfy_t2i_scheduler,
+                    "denoise": max(0.0, min(1.0, float(denoise))),
+                    "model": ["4", 0],
+                    "positive": ["6", 0],
+                    "negative": ["7", 0],
+                    "latent_image": ["11", 0],
+                },
+            },
+            "4": {
+                "class_type": "CheckpointLoaderSimple",
+                "inputs": {"ckpt_name": self.config.comfy_t2i_checkpoint},
+            },
+            "6": {
+                "class_type": "CLIPTextEncode",
+                "inputs": {"text": prompt, "clip": ["4", 1]},
+            },
+            "7": {
+                "class_type": "CLIPTextEncode",
+                "inputs": {"text": negative_prompt, "clip": ["4", 1]},
+            },
+            "8": {
+                "class_type": "VAEDecode",
+                "inputs": {"samples": ["3", 0], "vae": ["4", 2]},
+            },
+            "9": {
+                "class_type": "SaveImage",
+                "inputs": {"filename_prefix": out_prefix, "images": ["8", 0]},
+            },
+            "10": {
+                "class_type": "LoadImage",
+                "inputs": {"image": staged_reference},
+            },
+            "11": {
+                "class_type": "VAEEncode",
+                "inputs": {"pixels": ["10", 0], "vae": ["4", 2]},
+            },
+        }
+
+        self._raise_if_cancelled()
+        prompt_id = self.client.queue_prompt(api_prompt, partial_targets=["9"])
+        hist = self.client.wait_for_completion(prompt_id, cancel_requested=self._cancel_requested)
+        outputs = hist.get("outputs", {}).get("9", {}).get("images", [])
+        if not outputs:
+            raise RuntimeError("No image output returned from comfy_img2img backend")
+
+        first = outputs[0]
+        output_root = self.comfy_root / "output"
+        p = output_root / first.get("subfolder", "") / first["filename"]
+        if not p.exists():
+            raise FileNotFoundError(f"Generated img2img image was not found: {p}")
         return p
 
     def generate_images_for_chunk(self, chunk: Chunk) -> None:
@@ -883,6 +1032,7 @@ class LongformYvannRunner:
         batch_dir.mkdir(parents=True, exist_ok=True)
 
         batch_images: list[str] = []
+        previous_image = self._last_reference_image if self.config.continuity_mode in {"style", "carry"} else None
         for image_number in range(1, batch_count + 1):
             prompt = self._variation_prompt(chunk.scene_prompt, batch_id, image_number, batch_count)
             seed = self._seed_for(chunk.index, image_number, prompt)
@@ -890,15 +1040,26 @@ class LongformYvannRunner:
 
             if dst.exists() and not self.config.overwrite:
                 batch_images.append(str(dst))
+                previous_image = dst
                 continue
 
             if self.config.image_backend == "comfy_api":
                 try:
-                    generated = self._generate_comfy_t2i_image(
-                        prompt,
-                        chunk.negative_prompt,
-                        seed,
-                    )
+                    if previous_image and previous_image.exists():
+                        denoise = self.config.img2img_denoise if image_number > 1 else self.config.cross_scene_img2img_denoise
+                        generated = self._generate_comfy_img2img_image(
+                            prompt,
+                            chunk.negative_prompt,
+                            seed,
+                            previous_image,
+                            denoise,
+                        )
+                    else:
+                        generated = self._generate_comfy_t2i_image(
+                            prompt,
+                            chunk.negative_prompt,
+                            seed,
+                        )
                     shutil.copy2(generated, dst)
                 except Exception:
                     # Fallback to procedural to keep long jobs progressing.
@@ -907,9 +1068,12 @@ class LongformYvannRunner:
                 self._generate_procedural_image(dst, prompt, seed)
 
             batch_images.append(str(dst))
+            previous_image = dst
 
         chunk.visual_batch_image_paths = batch_images
         chunk.assigned_image_paths = batch_images
+        if batch_images:
+            self._last_reference_image = Path(batch_images[-1])
 
     def _load_and_convert_yvann_template(self) -> dict[str, Any]:
         workflow = json.loads(self.workflow_template_path.read_text(encoding="utf-8"))
@@ -1066,6 +1230,9 @@ class LongformYvannRunner:
         for nid in load_audio:
             prompt[nid].setdefault("inputs", {})["audio"] = target_audio_name
 
+        for nid in self._find_node_ids(prompt, "Audio Analysis"):
+            prompt[nid].setdefault("inputs", {})["analysis_mode"] = self.config.yvann_audio_analysis_mode
+
         # Derive practical per-chunk frame settings for long-form processing.
         target_frames = int(round(chunk.chunk_duration * self.config.yvann_render_fps))
         target_frames = max(self.config.yvann_min_frames, min(target_frames, self.config.yvann_max_frames))
@@ -1098,9 +1265,10 @@ class LongformYvannRunner:
         if out_path.exists() and not self.config.overwrite:
             return
 
+        self._raise_if_cancelled()
         prompt, output_node_id = self._inject_chunk_into_yvann_prompt(base_prompt, chunk)
         prompt_id = self.client.queue_prompt(prompt, partial_targets=[output_node_id])
-        history = self.client.wait_for_completion(prompt_id)
+        history = self.client.wait_for_completion(prompt_id, cancel_requested=self._cancel_requested)
 
         out_info = history.get("outputs", {}).get(output_node_id, {}).get("gifs", [])
         if not out_info:
@@ -1129,6 +1297,11 @@ class LongformYvannRunner:
         concat_list.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
         final_out = self.final_dir / "final_concat.mp4"
+        final_filter = (
+            f"fps={float(self.config.final_fps)},"
+            f"scale={int(self.config.final_width)}:{int(self.config.final_height)}:flags=lanczos,"
+            "setsar=1"
+        )
         run_cmd(
             [
                 "ffmpeg",
@@ -1142,12 +1315,20 @@ class LongformYvannRunner:
                 "0",
                 "-i",
                 str(concat_list),
+                "-vf",
+                final_filter,
+                "-r",
+                str(float(self.config.final_fps)),
                 "-c:v",
                 self.config.ffmpeg_video_codec,
                 "-crf",
                 str(self.config.ffmpeg_crf),
+                "-pix_fmt",
+                "yuv420p",
                 "-c:a",
                 "aac",
+                "-movflags",
+                "+faststart",
                 str(final_out),
             ]
         )
@@ -1162,6 +1343,13 @@ class LongformYvannRunner:
             base_prompt = self._load_and_convert_yvann_template()
 
         for chunk in chunks:
+            if self._cancel_requested():
+                state["status"] = "cancelled"
+                state["cancel_requested"] = True
+                state["updated_at"] = now_utc()
+                state["timestamps"]["last_update"] = now_utc()
+                self._write_job_state(state)
+                break
             if chunk.status == "completed" and Path(chunk.video_chunk_path).exists() and not self.config.overwrite:
                 continue
 
@@ -1170,12 +1358,14 @@ class LongformYvannRunner:
             state["timestamps"]["last_update"] = now_utc()
 
             try:
+                self._raise_if_cancelled()
                 self.split_audio_for_chunk(chunk)
                 state["image_generation_status"].setdefault(chunk.chunk_id, "pending")
                 self.generate_images_for_chunk(chunk)
                 state["image_generation_status"][chunk.chunk_id] = "completed"
 
                 if not dry_run:
+                    self._raise_if_cancelled()
                     state["video_generation_status"].setdefault(chunk.chunk_id, "pending")
                     assert base_prompt is not None
                     self.render_chunk_video(chunk, base_prompt)
@@ -1185,6 +1375,15 @@ class LongformYvannRunner:
                 chunk.error = None
                 if chunk.chunk_id not in state["completed_chunks"]:
                     state["completed_chunks"].append(chunk.chunk_id)
+            except JobCancelled as exc:
+                chunk.status = "cancelled"
+                chunk.error = str(exc)
+                state["status"] = "cancelled"
+                state["cancel_requested"] = True
+                state["video_generation_status"][chunk.chunk_id] = "cancelled"
+                self._write_manifest(chunks)
+                self._write_job_state(state)
+                break
             except Exception as exc:  # noqa: BLE001
                 chunk.status = "failed"
                 chunk.error = str(exc)
@@ -1199,12 +1398,30 @@ class LongformYvannRunner:
                 self._write_manifest(chunks)
                 self._write_job_state(state)
 
-        if not dry_run and self.config.final_concat:
+        if self._cancel_requested() and state.get("status") != "cancelled":
+            state["status"] = "cancelled"
+            state["cancel_requested"] = True
+            state["updated_at"] = now_utc()
+            state["timestamps"]["last_update"] = now_utc()
+            self._write_job_state(state)
+
+        if state.get("status") != "cancelled" and not dry_run and self.config.final_concat:
             try:
+                self._raise_if_cancelled()
                 self.concat_videos(chunks)
                 state["final_concat_status"] = "completed"
+                if state.get("status") != "cancelled" and not state["failed_chunks"]:
+                    state["status"] = "completed"
             except Exception as exc:  # noqa: BLE001
                 state["final_concat_status"] = f"failed: {exc}"
+                if state.get("status") != "cancelled":
+                    state["status"] = "failed"
+            self._write_job_state(state)
+        elif dry_run and state.get("status") != "cancelled":
+            state["status"] = "planned"
+            self._write_job_state(state)
+        elif not dry_run and not self.config.final_concat and state.get("status") != "cancelled":
+            state["status"] = "completed" if not state["failed_chunks"] else "failed"
             self._write_job_state(state)
 
         return {

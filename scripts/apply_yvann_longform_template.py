@@ -7,50 +7,23 @@ from pathlib import Path
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Apply tracked longform Yvann template to base workflow paths")
+    parser = argparse.ArgumentParser(description="Apply tracked longform Yvann dashboard workflow to user workflow paths")
     parser.add_argument("--repo-root", default=str(Path(__file__).resolve().parents[1]), help="ComfyUI repo root")
     parser.add_argument("--apply-user-workflow", action="store_true", help="Also copy template into user/default/workflows")
     args = parser.parse_args()
 
     repo_root = Path(args.repo_root).resolve()
     source = repo_root / "script_examples" / "workflows" / "AudioReactive_ImagesToVideo_Yvann (Longform Launcher).json"
-    run_me_source = repo_root / "script_examples" / "workflows" / "Yvann_Longform_Batch_Generator_RUN_ME.json"
-    human_workflow_source = repo_root / "script_examples" / "workflows" / "Yvann_Longform_ComfyUI_Workflow_RUN_THIS.json"
-    all_in_one_source = repo_root / "script_examples" / "workflows" / "Yvann_Longform_All_In_One_2H_Video_WORKFLOW.json"
-    target_base = repo_root / "custom_nodes" / "comfyui_yvann-nodes" / "example_workflows" / "AudioReactive_ImagesToVideo_Yvann.json"
     user_target = repo_root / "user" / "default" / "workflows" / "AudioReactive_ImagesToVideo_Yvann.json"
-    user_longform_target = repo_root / "user" / "default" / "workflows" / "AudioReactive_ImagesToVideo_Yvann_Longform_Batch_Generator.json"
-    user_run_me_target = repo_root / "user" / "default" / "workflows" / "Yvann_Longform_Batch_Generator_RUN_ME.json"
-    user_human_workflow_target = repo_root / "user" / "default" / "workflows" / "Yvann_Longform_ComfyUI_Workflow_RUN_THIS.json"
-    user_all_in_one_target = repo_root / "user" / "default" / "workflows" / "Yvann_Longform_All_In_One_2H_Video_WORKFLOW.json"
 
     if not source.exists():
         raise FileNotFoundError(f"Source template not found: {source}")
-    if not run_me_source.exists():
-        raise FileNotFoundError(f"RUN ME workflow not found: {run_me_source}")
-    if not human_workflow_source.exists():
-        raise FileNotFoundError(f"Human workflow not found: {human_workflow_source}")
-    if not all_in_one_source.exists():
-        raise FileNotFoundError(f"All-in-one workflow not found: {all_in_one_source}")
-    if not target_base.parent.exists():
-        raise FileNotFoundError(f"Yvann workflow path not found: {target_base.parent}")
-
-    target_base.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(source, target_base)
-    print(f"Applied base template: {target_base}")
-
     if args.apply_user_workflow:
         user_target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, user_target)
-        print(f"Applied user workflow template: {user_target}")
-        shutil.copy2(source, user_longform_target)
-        print(f"Applied longform user workflow: {user_longform_target}")
-        shutil.copy2(run_me_source, user_run_me_target)
-        print(f"Applied RUN ME launcher workflow: {user_run_me_target}")
-        shutil.copy2(human_workflow_source, user_human_workflow_target)
-        print(f"Applied human ComfyUI workflow: {user_human_workflow_target}")
-        shutil.copy2(all_in_one_source, user_all_in_one_target)
-        print(f"Applied all-in-one Yvann workflow: {user_all_in_one_target}")
+        print(f"Applied dashboard workflow: {user_target}")
+    else:
+        print(f"Dashboard source verified: {source}")
 
     return 0
 
