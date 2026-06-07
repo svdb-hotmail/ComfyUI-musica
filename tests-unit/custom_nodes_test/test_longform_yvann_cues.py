@@ -1,0 +1,43 @@
+from script_examples.longform_yvann_cue_parser import parse_visual_cue_markers
+from script_examples.longform_yvann_runner import LongformYvannRunner
+
+
+USER_STYLE_CUE_SHEET = """00:00:00  1 Deep Hertz - Melting Sun # Close-up of a colossal heavy-lift rocket on a night launchpad.
+00:00:01  2 Pre-Ignition Pressure # The rocket remains locked in place but pressure builds violently.
+00:00:02  3 Ignition Bloom # Ignition begins, orange-white engine glow blooms under the rocket.
+"""
+
+
+def test_dashboard_preview_extracts_line_timestamp_hash_comments():
+    cues = parse_visual_cue_markers(USER_STYLE_CUE_SHEET, total_duration=30.0)
+
+    assert [cue["start"] for cue in cues] == [0.0, 1.0, 2.0]
+    assert [cue["end"] for cue in cues] == [1.0, 2.0, 30.0]
+    assert cues[0]["summary"] == "Close-up of a colossal heavy-lift rocket on a night launchpad."
+    assert cues[2]["summary"] == "Ignition begins, orange-white engine glow blooms under the rocket."
+
+
+def test_backend_runner_extracts_line_timestamp_hash_comments():
+    runner = LongformYvannRunner.__new__(LongformYvannRunner)
+
+    cues = runner._extract_visual_cues(USER_STYLE_CUE_SHEET, total_duration=30.0)
+
+    assert [cue.start_time for cue in cues] == [0.0, 1.0, 2.0]
+    assert [cue.end_time for cue in cues] == [1.0, 2.0, 30.0]
+    assert cues[0].summary == "Close-up of a colossal heavy-lift rocket on a night launchpad."
+    assert cues[2].summary == "Ignition begins, orange-white engine glow blooms under the rocket."
+
+
+def test_existing_explicit_comment_timestamp_format_still_works():
+    cue_sheet = """00:00:00  1 Track name # A. 00:00:00 Rocket preparing for launch.
+00:00:45  2 Next section # B. 00:00:45 Rocket taking off.
+"""
+
+    preview_cues = parse_visual_cue_markers(cue_sheet, total_duration=90.0)
+    runner = LongformYvannRunner.__new__(LongformYvannRunner)
+    backend_cues = runner._extract_visual_cues(cue_sheet, total_duration=90.0)
+
+    assert [cue["id"] for cue in preview_cues] == ["A", "B"]
+    assert [cue.cue_id for cue in backend_cues] == ["A", "B"]
+    assert preview_cues[0]["summary"] == "Rocket preparing for launch."
+    assert backend_cues[1].summary == "Rocket taking off."
