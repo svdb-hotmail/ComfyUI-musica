@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+from script_examples.longform_yvann_cue_parser import parse_visual_cue_markers
 from script_examples.ltx_longform_job_package import materialize_package, package_to_runner_config
 
 
@@ -71,3 +72,77 @@ def test_materialize_package_writes_config_and_plan_from_shots(tmp_path):
     assert "### Clip 1A - 0:00-0:06 - 6s" in generated_plan
     assert "Drive forward through impossible salt flats." in generated_plan
     assert "### Clip 1B - 0:06-0:12 - 6s" in generated_plan
+
+
+def test_materialize_package_sanitizes_job_id_for_paths(tmp_path):
+    package_path = tmp_path / "job.json"
+    package_path.write_text(
+        json.dumps(
+            {
+                "job_id": "../outside/job:name",
+                "audio_path": "input/song.wav",
+                "image_paths": ["input/keyframe.png"],
+                "prompt_plan_text": "### Clip 1 - 0:00-0:06 - 6s\n```text\nForward.\n```\n",
+                "settings": {"output_root": str(tmp_path / "out")},
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    config_path, config = materialize_package(package_path, comfy_root=tmp_path)
+
+    assert config["job_id"] == "job_name"
+    assert config_path.parent == tmp_path / "out" / "_package_configs"
+    assert Path(config["prompt_plan_path"]).parent == config_path.parent
+
+
+def test_package_to_runner_config_coerces_string_booleans(tmp_path):
+    package = {
+        "job_id": "sdp_job_002",
+        "audio_path": "input/song.wav",
+        "image_paths": ["input/keyframe.png"],
+        "prompt_plan_text": "### Clip 1 - 0:00-0:06 - 6s\n```text\nForward.\n```\n",
+        "settings": {
+            "output_root": str(tmp_path / "out"),
+            "comfy_api_verify_tls": "false",
+            "use_previous_final_frame": "true",
+            "prompt_enhance": "0",
+            "enable_upscale": "yes",
+            "enable_voice_reference": "no",
+            "resume": "false",
+            "overwrite": "true",
+            "stop_on_failure": "off",
+            "final_concat": "on",
+        },
+    }
+
+    config, _plan = package_to_runner_config(package, comfy_root=tmp_path)
+
+    assert config["comfy_api_verify_tls"] is False
+    assert config["use_previous_final_frame"] is True
+    assert config["prompt_enhance"] is False
+    assert config["enable_upscale"] is True
+    assert config["enable_voice_reference"] is False
+    assert config["resume"] is False
+    assert config["overwrite"] is True
+    assert config["stop_on_failure"] is False
+    assert config["final_concat"] is True
+
+
+def test_shot_ids_without_clip_prefix_still_generate_parseable_headings(tmp_path):
+    package = {
+        "job_id": "sdp_job_003",
+        "audio_path": "input/song.wav",
+        "image_paths": ["input/keyframe.png"],
+        "shots": [
+            {"id": "shot_001", "start": 0, "end": 6, "prompt": "Keep moving forward."},
+        ],
+        "settings": {"output_root": str(tmp_path / "out")},
+    }
+
+    _config, plan = package_to_runner_config(package, comfy_root=tmp_path)
+
+    assert "### Clip 1 shot_001 - 0:00-0:06 - 6s" in plan
+    cues = parse_visual_cue_markers(plan, total_duration=6.0)
+    assert len(cues) == 1
+    assert cues[0]["summary"] == "Keep moving forward."

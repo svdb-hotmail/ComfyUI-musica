@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -10,6 +11,7 @@ from script_examples.longform_ltx23_runner import LongformLTX23Runner, LTXJobCon
 
 
 DEFAULT_TEMPLATE = "script_examples/workflows/video_ltx2_3_ia2v.json"
+SAFE_JOB_ID_PATTERN = re.compile(r"[^A-Za-z0-9_.-]+")
 
 
 def _as_object(value: Any, field_name: str) -> dict[str, Any]:
@@ -38,6 +40,34 @@ def _first_text(*values: Any) -> str:
     return ""
 
 
+def _coerce_bool(value: Any, field_name: str) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    if isinstance(value, (int, float)):
+        return bool(value)
+    text = str(value).strip().lower()
+    if text in {"1", "true", "t", "yes", "y", "on"}:
+        return True
+    if text in {"0", "false", "f", "no", "n", "off", "none", "null", ""}:
+        return False
+    raise ValueError(f"{field_name} must be a boolean or common boolean string/number")
+
+
+def _config_value(settings: dict[str, Any], package: dict[str, Any], field_name: str, default: Any) -> Any:
+    if field_name in settings:
+        return settings[field_name]
+    return package.get(field_name, default)
+
+
+def _safe_job_id(value: str, fallback: str) -> str:
+    candidate = _first_text(value, fallback)
+    candidate = candidate.replace("\\", "/").split("/")[-1]
+    candidate = SAFE_JOB_ID_PATTERN.sub("_", candidate).strip("._-")
+    return candidate or fallback
+
+
 def _seconds_to_timestamp(seconds: Any) -> str:
     total = max(0.0, float(seconds))
     whole = int(total)
@@ -62,12 +92,13 @@ def _plan_from_shots(shots: list[Any]) -> str:
         if start is None or end is None:
             raise ValueError(f"shots[{index - 1}] must include start/end or start_time/end_time")
         label = _first_text(shot.get("id"), shot.get("shot_id"), shot.get("label"), f"Clip {index}")
+        heading_label = label if re.search(r"\bclip\b", label, re.IGNORECASE) else f"Clip {index} {label}"
         prompt = _first_text(shot.get("prompt"), shot.get("summary"), shot.get("description"))
         if not prompt:
             raise ValueError(f"shots[{index - 1}] must include prompt, summary, or description")
         duration = max(0.0, float(end) - float(start))
         blocks.append(
-            f"### {label} - {_seconds_to_timestamp(start)}-{_seconds_to_timestamp(end)} - {duration:g}s\n"
+            f"### {heading_label} - {_seconds_to_timestamp(start)}-{_seconds_to_timestamp(end)} - {duration:g}s\n"
             f"```text\n{prompt}\n```"
         )
     return "\n\n".join(blocks) + ("\n" if blocks else "")
@@ -102,7 +133,7 @@ def _image_paths(package: dict[str, Any]) -> list[str]:
 def package_to_runner_config(package: dict[str, Any], *, comfy_root: str | Path = ".") -> tuple[dict[str, Any], str]:
     settings = _as_object(package.get("settings") or package.get("render_settings"), "settings")
     audio = _as_object(package.get("audio"), "audio")
-    job_id = _first_text(package.get("job_id"), package.get("id"))
+    job_id = _safe_job_id(_first_text(package.get("job_id"), package.get("id")), "ltx_job")
     audio_path = _first_text(package.get("audio_path"), audio.get("path"), audio.get("file_path"), audio.get("local_path"), audio.get("uri"))
     if not audio_path:
         raise ValueError("package must include audio_path or audio.path")
@@ -120,7 +151,7 @@ def package_to_runner_config(package: dict[str, Any], *, comfy_root: str | Path 
         "prompt_plan_path": "",
         "output_root": output_root,
         "comfy_api_url": _first_text(settings.get("comfy_api_url"), package.get("comfy_api_url"), "http://127.0.0.1:18188"),
-        "comfy_api_verify_tls": bool(settings.get("comfy_api_verify_tls", package.get("comfy_api_verify_tls", False))),
+        "comfy_api_verify_tls": _coerce_bool(_config_value(settings, package, "comfy_api_verify_tls", False), "comfy_api_verify_tls"),
         "comfy_root": str(comfy_root),
         "workflow_template_path": _first_text(settings.get("workflow_template_path"), package.get("workflow_template_path"), DEFAULT_TEMPLATE),
         "renderer": _first_text(settings.get("renderer"), package.get("renderer"), "ia2v"),
@@ -134,14 +165,14 @@ def package_to_runner_config(package: dict[str, Any], *, comfy_root: str | Path 
         "seed_strategy": _first_text(settings.get("seed_strategy"), package.get("seed_strategy"), "derived"),
         "base_seed": int(settings.get("base_seed", package.get("base_seed", 42))),
         "seed_offset": int(settings.get("seed_offset", package.get("seed_offset", 1009))),
-        "use_previous_final_frame": bool(settings.get("use_previous_final_frame", package.get("use_previous_final_frame", True))),
-        "prompt_enhance": bool(settings.get("prompt_enhance", package.get("prompt_enhance", True))),
-        "enable_upscale": bool(settings.get("enable_upscale", package.get("enable_upscale", False))),
-        "enable_voice_reference": bool(settings.get("enable_voice_reference", package.get("enable_voice_reference", False))),
-        "resume": bool(settings.get("resume", package.get("resume", True))),
-        "overwrite": bool(settings.get("overwrite", package.get("overwrite", False))),
-        "stop_on_failure": bool(settings.get("stop_on_failure", package.get("stop_on_failure", False))),
-        "final_concat": bool(settings.get("final_concat", package.get("final_concat", True))),
+        "use_previous_final_frame": _coerce_bool(_config_value(settings, package, "use_previous_final_frame", True), "use_previous_final_frame"),
+        "prompt_enhance": _coerce_bool(_config_value(settings, package, "prompt_enhance", True), "prompt_enhance"),
+        "enable_upscale": _coerce_bool(_config_value(settings, package, "enable_upscale", False), "enable_upscale"),
+        "enable_voice_reference": _coerce_bool(_config_value(settings, package, "enable_voice_reference", False), "enable_voice_reference"),
+        "resume": _coerce_bool(_config_value(settings, package, "resume", True), "resume"),
+        "overwrite": _coerce_bool(_config_value(settings, package, "overwrite", False), "overwrite"),
+        "stop_on_failure": _coerce_bool(_config_value(settings, package, "stop_on_failure", False), "stop_on_failure"),
+        "final_concat": _coerce_bool(_config_value(settings, package, "final_concat", True), "final_concat"),
         "ffmpeg_crf": int(settings.get("ffmpeg_crf", package.get("ffmpeg_crf", 18))),
         "job_id": job_id or None,
         "resume_job_dir": settings.get("resume_job_dir", package.get("resume_job_dir")),
@@ -162,7 +193,8 @@ def materialize_package(package_path: Path, output_config_path: Path | None = No
     output_root = Path(str(config["output_root"]))
     if not output_root.is_absolute():
         output_root = (root / output_root).resolve()
-    job_id = str(config.get("job_id") or package_path.stem)
+    job_id = _safe_job_id(str(config.get("job_id") or ""), package_path.stem)
+    config["job_id"] = job_id
     config_dir = output_root / "_package_configs"
     prompt_plan_path = config_dir / f"{job_id}_prompt_plan.md"
     prompt_plan_path.parent.mkdir(parents=True, exist_ok=True)
