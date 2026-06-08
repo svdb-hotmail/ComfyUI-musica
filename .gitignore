@@ -11,6 +11,7 @@ extra_model_paths.yaml
 /.vs
 .vscode/
 .idea/
+ComfyUI-musica-SDp-integration.code-workspace
 venv*/
 .venv/
 /web/extensions/*

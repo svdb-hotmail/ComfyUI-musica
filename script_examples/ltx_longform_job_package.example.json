@@ -1,0 +1,39 @@
+{
+  "schema": "storydirector.ltx-longform-job.v1",
+  "job_id": "sdp_example_ltx_job",
+  "audio": {
+    "path": "input/song.wav"
+  },
+  "keyframes": [
+    {
+      "id": "opening_frame",
+      "image_path": "input/opening_keyframe.png"
+    }
+  ],
+  "shots": [
+    {
+      "id": "Clip 1A",
+      "start": 0,
+      "end": 6,
+      "prompt": "Drive forward through a surreal landscape while preserving the vehicle, driver, and camera direction."
+    },
+    {
+      "id": "Clip 1B",
+      "start": 6,
+      "end": 12,
+      "prompt": "Continue from the previous final frame; the road moves forward into stranger terrain with coherent subject identity."
+    }
+  ],
+  "settings": {
+    "output_root": "output/longform_ltx23",
+    "workflow_template_path": "script_examples/workflows/video_ltx2_3_ia2v.json",
+    "renderer": "ia2v",
+    "width": 1280,
+    "height": 720,
+    "fps": 24,
+    "max_shots": 1,
+    "use_previous_final_frame": true,
+    "prompt_enhance": true,
+    "final_concat": false
+  }
+}
