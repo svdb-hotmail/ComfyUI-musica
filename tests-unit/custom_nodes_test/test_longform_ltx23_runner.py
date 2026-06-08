@@ -58,6 +58,66 @@ def test_manifest_uses_timestamp_cues_for_shots(tmp_path):
     assert shots[0].seed != shots[1].seed
 
 
+def test_manifest_uses_markdown_clip_plan_ranges(tmp_path):
+    runner = _runner(tmp_path)
+    runner.prompt_plan_path.write_text(
+        "### Clip 1A - 0:00-0:20 - 20s\n"
+        "```text\nInside the TV, the driver starts the desert road movie.\n```\n\n"
+        "### Clip 1B - 0:20-0:40 - 20s\n"
+        "```text\nKeep the same driver and continue the forward road motion.\n```\n",
+        encoding="utf-8",
+    )
+    runner.audio_duration = 45.0
+
+    shots = runner.build_manifest()
+
+    assert len(shots) == 2
+    assert [shot.start_time for shot in shots] == [0.0, 20.0]
+    assert [shot.duration for shot in shots] == [20.0, 20.0]
+    assert "driver starts the desert road movie" in shots[0].prompt
+    assert "Keep continuity from the previous shot" in shots[1].prompt
+
+
+def test_previous_final_frame_becomes_next_reference(tmp_path):
+    runner = _runner(tmp_path)
+    shots = runner.build_manifest()
+    final_frame = runner.final_frame_path_for_shot(shots[0])
+    final_frame.parent.mkdir(parents=True, exist_ok=True)
+    Image.new("RGB", (64, 64), (96, 64, 32)).save(final_frame)
+    shots[0].final_frame_path = str(final_frame)
+
+    runner._apply_continuity_reference(shots[1], shots[0])
+
+    assert shots[1].reference_image_path == str(final_frame)
+    assert shots[1].image_path == str(final_frame)
+
+
+def test_output_video_from_history_accepts_animated_image_mp4(tmp_path):
+    runner = _runner(tmp_path, renderer="ia2v")
+    runner.comfy_root = tmp_path
+    video_dir = tmp_path / "output" / "longform_ltx23" / "job_test"
+    video_dir.mkdir(parents=True, exist_ok=True)
+    video_path = video_dir / "shot_0001_00001_.mp4"
+    video_path.write_bytes(b"fake mp4")
+
+    history = {
+        "outputs": {
+            "341": {
+                "images": [
+                    {
+                        "filename": video_path.name,
+                        "subfolder": "longform_ltx23/job_test",
+                        "type": "output",
+                    }
+                ],
+                "animated": [True],
+            }
+        }
+    }
+
+    assert runner._output_video_from_history(history) == video_path
+
+
 def test_movie_builder_patch_sets_prompt_audio_duration_and_frame_count(tmp_path):
     runner = _runner(tmp_path, renderer="movie_builder")
     runner.config.enable_upscale = True

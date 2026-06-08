@@ -5,30 +5,12 @@
   "last_link_id": 4,
   "nodes": [
     {
-      "id": 1,
-      "type": "MarkdownNote",
-      "pos": [-900, -520],
-      "size": [520, 170],
-      "flags": {},
-      "order": 0,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [],
-      "title": "LTX 2.3 Longform Dashboard",
-      "properties": {},
-      "widgets_values": [
-        "### LTX 2.3 Longform Dashboard\nPlans a durable shot-based music-video render from input image(s), soundtrack, and a timestamped prompt plan. The launcher is disabled by default; set launch_now=true only when ready."
-      ],
-      "color": "#223",
-      "bgcolor": "#335"
-    },
-    {
       "id": 2,
       "type": "LongformYvannAudioSource",
       "pos": [-900, -300],
       "size": [520, 210],
       "flags": {},
-      "order": 1,
+      "order": 0,
       "mode": 0,
       "inputs": [
         {"name": "source_mode", "type": "COMBO", "link": null},
@@ -52,7 +34,7 @@
       "pos": [-300, -520],
       "size": [620, 260],
       "flags": {},
-      "order": 2,
+      "order": 1,
       "mode": 0,
       "inputs": [
         {"name": "prompt_plan_text", "type": "STRING", "link": null}
@@ -74,7 +56,7 @@
       "pos": [-300, -200],
       "size": [620, 700],
       "flags": {},
-      "order": 3,
+      "order": 2,
       "mode": 0,
       "inputs": [
         {"name": "launch_now", "type": "BOOLEAN", "link": null},
@@ -91,6 +73,7 @@
         {"name": "height", "type": "INT", "link": null},
         {"name": "fps", "type": "INT", "link": null},
         {"name": "prompt_enhance", "type": "BOOLEAN", "link": null},
+        {"name": "use_previous_final_frame", "type": "BOOLEAN", "link": null},
         {"name": "enable_upscale", "type": "BOOLEAN", "link": null},
         {"name": "enable_voice_reference", "type": "BOOLEAN", "link": null},
         {"name": "seed_strategy", "type": "COMBO", "link": null},
@@ -111,13 +94,14 @@
         "input/example.png",
         "cinematic music video, coherent image-to-video motion, strong subject continuity, rhythmic visual evolution, polished lighting",
         "output/longform_ltx23",
-        "script_examples/workflows/Movie_Builder_LTX2.3_workflow.json",
-        "movie_builder",
+        "script_examples/workflows/video_ltx2_3_ia2v.json",
+        "ia2v",
         6.0,
         0,
         1280,
         720,
         24,
+        true,
         true,
         false,
         false,
@@ -136,7 +120,7 @@
       "pos": [420, -200],
       "size": [520, 300],
       "flags": {},
-      "order": 4,
+      "order": 3,
       "mode": 0,
       "inputs": [
         {"name": "job_id", "type": "STRING", "link": 3},
