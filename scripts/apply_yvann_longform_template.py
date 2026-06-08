@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import shutil
+import sys
 from pathlib import Path
 
 
@@ -21,9 +22,9 @@ def main() -> int:
     if args.apply_user_workflow:
         user_target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, user_target)
-        print(f"Applied dashboard workflow: {user_target}")
+        sys.stdout.write(f"Applied dashboard workflow: {user_target}\n")
     else:
-        print(f"Dashboard source verified: {source}")
+        sys.stdout.write(f"Dashboard source verified: {source}\n")
 
     return 0
 
