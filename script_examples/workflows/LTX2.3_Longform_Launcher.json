@@ -1,0 +1,182 @@
+{
+  "id": "7d921c8e-7fd5-48dd-9d77-a09845c4d1de",
+  "revision": 0,
+  "last_node_id": 5,
+  "last_link_id": 4,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "MarkdownNote",
+      "pos": [-900, -520],
+      "size": [520, 170],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "LTX 2.3 Longform Dashboard",
+      "properties": {},
+      "widgets_values": [
+        "### LTX 2.3 Longform Dashboard\nPlans a durable shot-based music-video render from input image(s), soundtrack, and a timestamped prompt plan. The launcher is disabled by default; set launch_now=true only when ready."
+      ],
+      "color": "#223",
+      "bgcolor": "#335"
+    },
+    {
+      "id": 2,
+      "type": "LongformYvannAudioSource",
+      "pos": [-900, -300],
+      "size": [520, 210],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {"name": "source_mode", "type": "COMBO", "link": null},
+        {"name": "input_audio_file", "type": "COMBO", "link": null},
+        {"name": "audio_path", "type": "STRING", "link": null},
+        {"name": "uploaded_audio", "type": "AUDIO", "link": null}
+      ],
+      "outputs": [
+        {"name": "audio_source", "type": "YVANN_AUDIO_SOURCE", "links": [1]},
+        {"name": "audio_path", "type": "STRING", "links": null}
+      ],
+      "title": "Select or upload soundtrack",
+      "properties": {"Node name for S&R": "LongformYvannAudioSource"},
+      "widgets_values": ["input_file", "", ""],
+      "color": "#234",
+      "bgcolor": "#346"
+    },
+    {
+      "id": 3,
+      "type": "LongformLTX23PromptPlanSource",
+      "pos": [-300, -520],
+      "size": [620, 260],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {"name": "prompt_plan_text", "type": "STRING", "link": null}
+      ],
+      "outputs": [
+        {"name": "prompt_plan_text", "type": "STRING", "links": [2]}
+      ],
+      "title": "Prompt plan / music video cues",
+      "properties": {"Node name for S&R": "LongformLTX23PromptPlanSource"},
+      "widgets_values": [
+        "00:00:00  1 Opening # Animate the provided image as a cinematic music-video shot. Keep subject identity, composition, lighting continuity, and rhythm-aware motion.\n00:00:06  2 Build # Preserve the same visual world while camera motion, atmosphere, and subject movement intensify with the soundtrack."
+      ],
+      "color": "#243",
+      "bgcolor": "#365"
+    },
+    {
+      "id": 4,
+      "type": "LongformLTX23Launcher",
+      "pos": [-300, -200],
+      "size": [620, 700],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {"name": "launch_now", "type": "BOOLEAN", "link": null},
+        {"name": "prompt_plan_text", "type": "STRING", "link": 2},
+        {"name": "audio_config", "type": "YVANN_AUDIO_SOURCE", "link": 1},
+        {"name": "image_paths", "type": "STRING", "link": null},
+        {"name": "global_style_prompt", "type": "STRING", "link": null},
+        {"name": "output_root", "type": "STRING", "link": null},
+        {"name": "workflow_template_path", "type": "STRING", "link": null},
+        {"name": "renderer", "type": "COMBO", "link": null},
+        {"name": "shot_duration_seconds", "type": "FLOAT", "link": null},
+        {"name": "max_shots", "type": "INT", "link": null},
+        {"name": "width", "type": "INT", "link": null},
+        {"name": "height", "type": "INT", "link": null},
+        {"name": "fps", "type": "INT", "link": null},
+        {"name": "prompt_enhance", "type": "BOOLEAN", "link": null},
+        {"name": "enable_upscale", "type": "BOOLEAN", "link": null},
+        {"name": "enable_voice_reference", "type": "BOOLEAN", "link": null},
+        {"name": "seed_strategy", "type": "COMBO", "link": null},
+        {"name": "base_seed", "type": "INT", "link": null},
+        {"name": "resume", "type": "BOOLEAN", "link": null},
+        {"name": "overwrite", "type": "BOOLEAN", "link": null},
+        {"name": "final_concat", "type": "BOOLEAN", "link": null}
+      ],
+      "outputs": [
+        {"name": "job_id", "type": "STRING", "links": [3]},
+        {"name": "job_dir", "type": "STRING", "links": [4]},
+        {"name": "config_path", "type": "STRING", "links": null}
+      ],
+      "title": "Start LTX backend longform job",
+      "properties": {"Node name for S&R": "LongformLTX23Launcher"},
+      "widgets_values": [
+        false,
+        "input/example.png",
+        "cinematic music video, coherent image-to-video motion, strong subject continuity, rhythmic visual evolution, polished lighting",
+        "output/longform_ltx23",
+        "script_examples/workflows/Movie_Builder_LTX2.3_workflow.json",
+        "movie_builder",
+        6.0,
+        0,
+        1280,
+        720,
+        24,
+        true,
+        false,
+        false,
+        "derived",
+        42,
+        true,
+        false,
+        true
+      ],
+      "color": "#253",
+      "bgcolor": "#384"
+    },
+    {
+      "id": 5,
+      "type": "LongformLTX23JobStatus",
+      "pos": [420, -200],
+      "size": [520, 300],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {"name": "job_id", "type": "STRING", "link": 3},
+        {"name": "job_dir", "type": "STRING", "link": 4},
+        {"name": "output_root", "type": "STRING", "link": null}
+      ],
+      "outputs": [],
+      "title": "Refresh LTX backend job status",
+      "properties": {"Node name for S&R": "LongformLTX23JobStatus"},
+      "widgets_values": ["output/longform_ltx23"],
+      "color": "#223",
+      "bgcolor": "#335"
+    }
+  ],
+  "links": [
+    [1, 2, 0, 4, 2, "YVANN_AUDIO_SOURCE"],
+    [2, 3, 0, 4, 1, "STRING"],
+    [3, 4, 0, 5, 0, "STRING"],
+    [4, 4, 1, 5, 1, "STRING"]
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "title": "Inputs",
+      "bounding": [-940, -570, 1300, 1120],
+      "color": "#3f789e",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 2,
+      "title": "Backend status",
+      "bounding": [380, -250, 600, 410],
+      "color": "#3f789e",
+      "font_size": 24,
+      "flags": {}
+    }
+  ],
+  "definitions": {"subgraphs": []},
+  "config": {},
+  "extra": {"ds": {"scale": 0.78, "offset": [980, 560]}},
+  "version": 0.4
+}
