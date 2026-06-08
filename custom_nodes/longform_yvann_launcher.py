@@ -15,6 +15,7 @@ import torch
 import numpy as np
 from PIL import Image
 from PIL import ImageDraw
+from PIL import ImageFont
 
 from server import PromptServer
 from script_examples.longform_yvann_cue_parser import parse_visual_cue_markers
@@ -52,6 +53,10 @@ def _cancel_path(job_dir: Path) -> Path:
 
 def _runner_path() -> Path:
     return _repo_root() / "script_examples" / "longform_yvann_runner.py"
+
+
+def _ltx_runner_path() -> Path:
+    return _repo_root() / "script_examples" / "longform_ltx23_runner.py"
 
 
 def _hms_to_sec(value: str) -> float:
@@ -130,6 +135,16 @@ def _latest_manifest_job_dir(output_root: Path) -> Path | None:
     jobs = sorted([p for p in output_root.glob("job_*") if p.is_dir()], reverse=True)
     for job in jobs:
         if (job / "manifest" / "chunk_manifest.json").exists():
+            return job
+    return jobs[0] if jobs else None
+
+
+def _latest_ltx_manifest_job_dir(output_root: Path) -> Path | None:
+    if not output_root.exists():
+        return None
+    jobs = sorted([p for p in output_root.glob("job_*") if p.is_dir()], reverse=True)
+    for job in jobs:
+        if (job / "manifest" / "shot_manifest.json").exists():
             return job
     return jobs[0] if jobs else None
 
@@ -402,7 +417,15 @@ def _decode_json_object(value: object, field_name: str) -> dict[str, object]:
     return payload
 
 
-def _write_audio_waveform_preview(audio_path: Path, output_path: Path, width: int = 1280, height: int = 240) -> Path:
+def _write_audio_waveform_preview(
+    audio_path: Path,
+    output_path: Path,
+    width: int = 1280,
+    height: int = 240,
+    cues: list[dict[str, object]] | None = None,
+    chunks: list[tuple[float, float]] | None = None,
+    total_duration: float | None = None,
+) -> Path:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     proc = subprocess.run(
         [
@@ -439,6 +462,37 @@ def _write_audio_waveform_preview(audio_path: Path, output_path: Path, width: in
             y1 = int(center - hi * (height * 0.44))
             y2 = int(center - lo * (height * 0.44))
             draw.line((x, y1, x, y2), fill=(76, 194, 178), width=1)
+    duration = total_duration or _audio_duration(audio_path)
+    if duration and duration > 0:
+        font = ImageFont.load_default()
+        for idx, (start, end) in enumerate(chunks or [], start=1):
+            x1 = int(max(0.0, min(1.0, float(start) / duration)) * (width - 1))
+            x2 = int(max(0.0, min(1.0, float(end) / duration)) * (width - 1))
+            fill = (34, 48, 70) if idx % 2 else (28, 40, 58)
+            draw.rectangle((x1, 0, max(x2, x1 + 1), height), fill=fill)
+        if samples.size:
+            for x in range(width):
+                segment = samples[x * bucket : min(samples.size, (x + 1) * bucket)]
+                if segment.size == 0:
+                    continue
+                lo = float(segment.min())
+                hi = float(segment.max())
+                y1 = int(center - hi * (height * 0.44))
+                y2 = int(center - lo * (height * 0.44))
+                draw.line((x, y1, x, y2), fill=(76, 194, 178), width=1)
+        for idx, cue in enumerate(cues or [], start=1):
+            start = float(cue.get("start", 0.0))
+            x = int(max(0.0, min(1.0, start / duration)) * (width - 1))
+            color = (255, 198, 72) if idx % 2 else (255, 240, 156)
+            draw.line((x, 0, x, height), fill=color, width=2)
+            if idx <= 40:
+                label = str(cue.get("id") or idx).replace("cue_", "")
+                draw.text((min(width - 26, x + 3), 4 + ((idx - 1) % 4) * 12), label, fill=color, font=font)
+        for idx, (start, _end) in enumerate(chunks or [], start=1):
+            x = int(max(0.0, min(1.0, float(start) / duration)) * (width - 1))
+            draw.line((x, height - 22, x, height), fill=(122, 162, 255), width=2)
+            draw.text((min(width - 44, x + 3), height - 18), f"C{idx}", fill=(185, 205, 255), font=font)
+        draw.text((8, height - 18), f"{len(cues or [])} cues / {len(chunks or [])} chunks", fill=(235, 240, 245), font=font)
     image.save(output_path)
     return output_path
 
@@ -664,7 +718,7 @@ class LongformYvannAudioAnalysisPreview:
         chunks = _plan_chunks(total_duration, [], chunk_duration_seconds, max_chunks) if total_duration else []
         preview_path = _repo_root() / "output" / "yvann_audio_analysis" / f"waveform_{audio_path.stem}_{int(time.time())}.png"
         try:
-            _write_audio_waveform_preview(audio_path, preview_path)
+            _write_audio_waveform_preview(audio_path, preview_path, cues=cues, chunks=chunks, total_duration=total_duration)
             tensor = _image_to_tensor(preview_path).unsqueeze(0)
             image_entry = _image_ui_entry(preview_path)
         except Exception as exc:
@@ -680,15 +734,39 @@ class LongformYvannAudioAnalysisPreview:
             f"Duration: {_sec_to_hms(total_duration) if total_duration else 'unknown'}",
             f"Visual cue batches: {len(cues)}",
             f"Planned chunks: {len(chunks)}",
+            "Waveform overlay: yellow cue markers, blue chunk starts, alternating dark chunk spans.",
         ]
         if extra_error:
             lines.append(extra_error)
         for cue in cues[:24]:
             lines.append(f"{cue['id']} {_sec_to_hms(float(cue['start']))}-{_sec_to_hms(float(cue['end']))}: {str(cue['summary'])[:140]}")
+        if len(cues) > 24:
+            lines.append(f"... {len(cues) - 24} more cue batches not shown in this compact report")
         ui: dict[str, object] = {"text": lines}
         if image_entry:
             ui["images"] = [image_entry]
         return {"ui": ui, "result": (tensor, "\n".join(lines))}
+
+
+class LongformYvannAnalysisReport:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "analysis_report": ("STRING", {"multiline": True, "default": ""}),
+            }
+        }
+
+    RETURN_TYPES = ()
+    FUNCTION = "display"
+    OUTPUT_NODE = True
+    CATEGORY = "Yvann/Longform"
+
+    def display(self, analysis_report):
+        lines = [line for line in str(analysis_report).splitlines() if line.strip()]
+        if not lines:
+            lines = ["Queue the audio/cue preview to inspect waveform, cue batches, and planned render chunks."]
+        return {"ui": {"text": lines}, "result": ()}
 
 
 def _launch_process(config_path: Path, log_path: Path) -> subprocess.Popen:
@@ -708,6 +786,249 @@ def _launch_process(config_path: Path, log_path: Path) -> subprocess.Popen:
         [sys.executable, str(_runner_path()), "--config", str(config_path)],
         **kwargs,
     )
+
+
+def _launch_ltx_process(config_path: Path, log_path: Path) -> subprocess.Popen:
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    log_file = open(log_path, "a", encoding="utf-8")
+    kwargs = {
+        "stdout": log_file,
+        "stderr": subprocess.STDOUT,
+        "cwd": str(_repo_root()),
+        "text": True,
+    }
+    if os.name == "nt":
+        kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
+    else:
+        kwargs["start_new_session"] = True
+    return subprocess.Popen(
+        [sys.executable, str(_ltx_runner_path()), "--config", str(config_path)],
+        **kwargs,
+    )
+
+
+class LongformLTX23PromptPlanSource:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt_plan_text": (
+                    "STRING",
+                    {
+                        "multiline": True,
+                        "default": (
+                            "00:00:00  1 Opening # Animate the provided image as a cinematic music-video shot. "
+                            "Keep the same subject and composition while lighting and atmosphere respond to the music.\n"
+                            "00:00:06  2 Build # Preserve identity and camera continuity while motion intensifies with the beat."
+                        ),
+                    },
+                )
+            }
+        }
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("prompt_plan_text",)
+    FUNCTION = "emit"
+    CATEGORY = "LTX/Longform"
+
+    def emit(self, prompt_plan_text):
+        return (str(prompt_plan_text),)
+
+
+class LongformLTX23Launcher:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "launch_now": ("BOOLEAN", {"default": False}),
+                "prompt_plan_text": ("STRING", {"multiline": True, "default": ""}),
+                "audio_config": ("YVANN_AUDIO_SOURCE",),
+                "image_paths": (
+                    "STRING",
+                    {
+                        "multiline": True,
+                        "default": "input/example.png",
+                        "tooltip": "One image path per line. Relative paths are resolved from the ComfyUI root.",
+                    },
+                ),
+                "global_style_prompt": (
+                    "STRING",
+                    {
+                        "multiline": True,
+                        "default": "cinematic music video, coherent image-to-video motion, strong subject continuity, rhythmic visual evolution, polished lighting",
+                    },
+                ),
+                "output_root": ("STRING", {"multiline": False, "default": "output/longform_ltx23"}),
+                "workflow_template_path": (
+                    "STRING",
+                    {"multiline": False, "default": "script_examples/workflows/Movie_Builder_LTX2.3_workflow.json"},
+                ),
+                "renderer": (["movie_builder", "ia2v"], {"default": "movie_builder"}),
+                "shot_duration_seconds": ("FLOAT", {"default": 6.0, "min": 1.0, "max": 30.0, "step": 1.0}),
+                "max_shots": ("INT", {"default": 0, "min": 0, "max": 10000, "step": 1}),
+                "width": ("INT", {"default": 1280, "min": 256, "max": 4096, "step": 8}),
+                "height": ("INT", {"default": 720, "min": 256, "max": 4096, "step": 8}),
+                "fps": ("INT", {"default": 24, "min": 1, "max": 60, "step": 1}),
+                "prompt_enhance": ("BOOLEAN", {"default": True}),
+                "enable_upscale": ("BOOLEAN", {"default": False}),
+                "enable_voice_reference": ("BOOLEAN", {"default": False}),
+                "seed_strategy": (["derived", "deterministic", "random"], {"default": "derived"}),
+                "base_seed": ("INT", {"default": 42, "min": 0, "max": 2147483647, "step": 1}),
+                "resume": ("BOOLEAN", {"default": True}),
+                "overwrite": ("BOOLEAN", {"default": False}),
+                "final_concat": ("BOOLEAN", {"default": True}),
+            }
+        }
+
+    RETURN_TYPES = ("STRING", "STRING", "STRING")
+    RETURN_NAMES = ("job_id", "job_dir", "config_path")
+    FUNCTION = "launch"
+    OUTPUT_NODE = True
+    CATEGORY = "LTX/Longform"
+
+    @classmethod
+    def VALIDATE_INPUTS(cls, **kwargs):
+        return True
+
+    def launch(
+        self,
+        launch_now,
+        prompt_plan_text,
+        audio_config,
+        image_paths,
+        global_style_prompt,
+        output_root,
+        workflow_template_path,
+        renderer,
+        shot_duration_seconds,
+        max_shots,
+        width,
+        height,
+        fps,
+        prompt_enhance,
+        enable_upscale,
+        enable_voice_reference,
+        seed_strategy,
+        base_seed,
+        resume,
+        overwrite,
+        final_concat,
+    ):
+        output_root_path = _resolve_path(str(output_root))
+        job_id = _job_id()
+        config_path = _config_path(output_root_path, job_id)
+        prompt_plan_path = output_root_path / "_launcher_configs" / f"{job_id}_prompt_plan.txt"
+        prompt_plan_path.parent.mkdir(parents=True, exist_ok=True)
+        prompt_plan_path.write_text(str(prompt_plan_text), encoding="utf-8")
+        audio = _decode_json_object(audio_config, "audio_config")
+        image_path_list = [line.strip() for line in str(image_paths).splitlines() if line.strip()]
+        config = {
+            "job_id": job_id,
+            "audio_path": str(audio.get("audio_path", "")),
+            "image_paths": image_path_list,
+            "prompt_plan_path": str(prompt_plan_path),
+            "output_root": str(output_root_path),
+            "comfy_root": str(_repo_root()),
+            "workflow_template_path": str(_resolve_path(str(workflow_template_path))),
+            "renderer": str(renderer),
+            "global_style_prompt": str(global_style_prompt),
+            "shot_duration_seconds": float(shot_duration_seconds or 6.0),
+            "max_shots": int(max_shots) if int(max_shots or 0) > 0 else None,
+            "width": int(width or 1280),
+            "height": int(height or 720),
+            "fps": int(fps or 24),
+            "prompt_enhance": bool(prompt_enhance),
+            "enable_upscale": bool(enable_upscale),
+            "enable_voice_reference": bool(enable_voice_reference),
+            "seed_strategy": str(seed_strategy),
+            "base_seed": int(base_seed or 42),
+            "resume": bool(resume),
+            "overwrite": bool(overwrite),
+            "final_concat": bool(final_concat),
+        }
+        _write_config(config_path, config)
+        job_dir = Path(str(config["output_root"])) / job_id
+        log_path = output_root_path / "_launcher_logs" / f"{job_id}.log"
+        if not bool(launch_now):
+            text = f"LTX longform config written but launch_now=false: {config_path}"
+            return {"ui": {"text": [text]}, "result": ("launch_disabled", str(job_dir), str(config_path))}
+
+        process = _launch_ltx_process(config_path, log_path)
+        record = {
+            "job_id": job_id,
+            "pid": process.pid,
+            "config_path": str(config_path),
+            "job_dir": str(job_dir),
+            "log_path": str(log_path),
+            "started_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        }
+        _write_json(_process_record_path(config_path), record)
+        JOB_REGISTRY[job_id] = record
+        lines = [
+            f"Started LTX longform backend job: {job_id}",
+            f"pid: {process.pid}",
+            f"job_dir: {job_dir}",
+            f"log: {log_path}",
+        ]
+        return {"ui": {"text": lines}, "result": (job_id, str(job_dir), str(config_path))}
+
+
+class LongformLTX23JobStatus:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "job_id": ("STRING", {"multiline": False, "default": ""}),
+                "job_dir": ("STRING", {"multiline": False, "default": ""}),
+                "output_root": ("STRING", {"multiline": False, "default": "output/longform_ltx23"}),
+            }
+        }
+
+    RETURN_TYPES = ()
+    FUNCTION = "show_status"
+    OUTPUT_NODE = True
+    CATEGORY = "LTX/Longform"
+
+    def show_status(self, job_id, job_dir, output_root):
+        resolved_job_dir = Path(str(job_dir).strip()) if str(job_dir).strip() else None
+        if resolved_job_dir and not resolved_job_dir.is_absolute():
+            resolved_job_dir = (_repo_root() / resolved_job_dir).resolve()
+        if not resolved_job_dir or not resolved_job_dir.exists():
+            resolved_job_dir = _latest_ltx_manifest_job_dir(_resolve_path(str(output_root)))
+        lines = [f"job_id: {job_id}", f"job_dir: {resolved_job_dir or job_dir}"]
+        if not resolved_job_dir or not resolved_job_dir.exists():
+            lines.append("No LTX job folder found yet.")
+            return {"ui": {"text": lines}}
+        state_path = resolved_job_dir / "job_state.json"
+        if state_path.exists():
+            try:
+                state = json.loads(state_path.read_text(encoding="utf-8"))
+                total = int(state.get("number_of_shots") or 0)
+                completed = len(state.get("completed_shots", []) or [])
+                failed = len(state.get("failed_shots", []) or [])
+                percent = 100 if state.get("status") == "completed" else int((completed / max(total, 1)) * 100)
+                lines.append(
+                    f"backend status: {state.get('status', 'running')}; overall progress: {percent}% "
+                    f"({completed}/{total or '?'} shots completed); current: shot {state.get('current_shot_index', '?')}/{total or '?'} "
+                    f"{state.get('current_stage', 'running')}; failed: {failed}; concat: {state.get('final_concat_status')}"
+                )
+            except Exception as exc:
+                lines.append(f"Could not read job_state.json: {exc}")
+        manifest_path = resolved_job_dir / "manifest" / "shot_manifest.json"
+        if manifest_path.exists():
+            try:
+                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+                lines.append("")
+                lines.append("Shots:")
+                for shot in manifest.get("shots", [])[:80]:
+                    lines.append(
+                        f"{shot.get('shot_id')} {_sec_to_hms(float(shot.get('start_time', 0)))}-"
+                        f"{_sec_to_hms(float(shot.get('end_time', 0)))} {shot.get('status')}: "
+                        f"{str(shot.get('summary', ''))[:140]}"
+                    )
+            except Exception as exc:
+                lines.append(f"Could not read shot_manifest.json: {exc}")
+        return {"ui": {"text": lines}}
 
 
 class LongformYvannLauncher:
@@ -1053,7 +1374,7 @@ class LongformYvannCueSheetParser:
         total_duration = duration or float(cues[-1]["end"])
         chunks = _plan_chunks(
             total_duration,
-            [float(cue["start"]) for cue in cues],
+            [],
             float(chunk_duration_seconds),
             int(max_chunks),
         )
@@ -1128,7 +1449,7 @@ class LongformYvannCueSheetBatchPlan:
         total_duration = duration or float(cues[-1]["end"])
         chunks = _plan_chunks(
             total_duration,
-            [float(cue["start"]) for cue in cues],
+            [],
             float(chunk_duration_seconds),
             int(max_chunks),
         )
@@ -1204,10 +1525,31 @@ class LongformYvannJobStatus:
         if state_path.exists():
             try:
                 state = json.loads(state_path.read_text(encoding="utf-8"))
+                total_chunks = int(state.get("number_of_chunks") or 0)
+                completed_chunks = len(state.get("completed_chunks", []) or [])
+                failed_chunks = len(state.get("failed_chunks", []) or [])
+                image_status = state.get("image_generation_status", {}) or {}
+                video_status = state.get("video_generation_status", {}) or {}
+                completed_units = sum(1 for value in image_status.values() if value == "completed")
+                completed_units += sum(1 for value in video_status.values() if value == "completed")
+                total_units = max(1, total_chunks * 2)
+                stage = str(state.get("current_stage") or state.get("status") or "running")
+                current_chunk_id = str(state.get("current_chunk_id") or "")
+                if current_chunk_id and current_chunk_id not in (state.get("completed_chunks", []) or []):
+                    if stage in {"preparing_chunk", "splitting_audio", "generating_keyframes"} and image_status.get(current_chunk_id) != "completed":
+                        completed_units += 0.25
+                    elif stage == "rendering_video" and video_status.get(current_chunk_id) != "completed":
+                        completed_units += 0.5
+                percent = int(max(0.0, min(100.0, (completed_units / total_units) * 100.0)))
+                if stage == "concatenating_final_video":
+                    percent = max(percent, 99)
+                if state.get("status") == "completed":
+                    percent = 100
                 lines.append(
                     f"backend status: {state.get('status', 'running')}; "
-                    f"progress: {len(state.get('completed_chunks', []))}/{state.get('number_of_chunks', '?')} chunks completed; "
-                    f"failed: {len(state.get('failed_chunks', []))}; concat: {state.get('final_concat_status')}; "
+                    f"overall progress: {percent}% ({completed_chunks}/{total_chunks or '?'} chunks completed); "
+                    f"current: chunk {state.get('current_chunk_index', '?')}/{total_chunks or '?'} {stage}; "
+                    f"failed: {failed_chunks}; concat: {state.get('final_concat_status')}; "
                     f"cancel requested: {bool(state.get('cancel_requested')) or (resolved_job_dir / 'cancel.requested').exists()}"
                 )
                 if state.get("render_profile"):
@@ -1565,6 +1907,7 @@ NODE_CLASS_MAPPINGS = {
     "LongformYvannAudioSource": LongformYvannAudioSource,
     "LongformYvannExecutionSettings": LongformYvannExecutionSettings,
     "LongformYvannAudioAnalysisPreview": LongformYvannAudioAnalysisPreview,
+    "LongformYvannAnalysisReport": LongformYvannAnalysisReport,
     "LongformYvannCueSheetLauncher": LongformYvannCueSheetLauncher,
     "LongformYvannCueSheetParser": LongformYvannCueSheetParser,
     "LongformYvannCueSheetBatchPlan": LongformYvannCueSheetBatchPlan,
@@ -1573,6 +1916,9 @@ NODE_CLASS_MAPPINGS = {
     "LongformYvannGeneratedImagesOutput": LongformYvannGeneratedImagesOutput,
     "LongformYvannFourImagesOutput": LongformYvannFourImagesOutput,
     "LongformYvannWorkflowInspector": LongformYvannWorkflowInspector,
+    "LongformLTX23PromptPlanSource": LongformLTX23PromptPlanSource,
+    "LongformLTX23Launcher": LongformLTX23Launcher,
+    "LongformLTX23JobStatus": LongformLTX23JobStatus,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -1582,6 +1928,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "LongformYvannAudioSource": "Yvann Longform Audio Source",
     "LongformYvannExecutionSettings": "Yvann Longform Execution Settings",
     "LongformYvannAudioAnalysisPreview": "Yvann Longform Audio Analysis Preview",
+    "LongformYvannAnalysisReport": "Yvann Longform Cue Plan Report",
     "LongformYvannCueSheetLauncher": "Yvann Longform Image-to-Video",
     "LongformYvannCueSheetParser": "Yvann Longform Cue Sheet Parser",
     "LongformYvannCueSheetBatchPlan": "Yvann Longform Batch Plan",
@@ -1590,4 +1937,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "LongformYvannGeneratedImagesOutput": "Yvann Longform Generated Images",
     "LongformYvannFourImagesOutput": "Yvann Longform Scene Batch",
     "LongformYvannWorkflowInspector": "Yvann Workflow Inspector",
+    "LongformLTX23PromptPlanSource": "LTX 2.3 Longform Prompt Plan",
+    "LongformLTX23Launcher": "LTX 2.3 Longform Launcher",
+    "LongformLTX23JobStatus": "LTX 2.3 Longform Job Status",
 }

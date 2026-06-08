@@ -1,8 +1,8 @@
 {
   "id": "9a3b4762-c392-4aaf-8b28-00b23b5d8cb8",
   "revision": 2,
-  "last_node_id": 11,
-  "last_link_id": 11,
+  "last_node_id": 12,
+  "last_link_id": 12,
   "nodes": [
     {
       "id": 1,
@@ -191,11 +191,29 @@
       ],
       "outputs": [
         {"name": "audio_waveform", "type": "IMAGE", "links": null},
-        {"name": "analysis_report", "type": "STRING", "links": null}
+        {"name": "analysis_report", "type": "STRING", "links": [12]}
       ],
       "title": "Preview audio analysis and cue plan",
       "properties": {"Node name for S&R": "LongformYvannAudioAnalysisPreview"},
       "widgets_values": [45.0, 0],
+      "color": "#234",
+      "bgcolor": "#346"
+    },
+    {
+      "id": 12,
+      "type": "LongformYvannAnalysisReport",
+      "pos": [940, -300],
+      "size": [420, 330],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {"name": "analysis_report", "type": "STRING", "link": 12}
+      ],
+      "outputs": [],
+      "title": "Read cue plan report",
+      "properties": {"Node name for S&R": "LongformYvannAnalysisReport"},
+      "widgets_values": [],
       "color": "#234",
       "bgcolor": "#346"
     },
@@ -205,7 +223,7 @@
       "pos": [370, 80],
       "size": [500, 260],
       "flags": {},
-      "order": 7,
+      "order": 8,
       "mode": 0,
       "inputs": [
         {"name": "job_id", "type": "STRING", "link": 5},
@@ -226,7 +244,7 @@
       "pos": [370, 390],
       "size": [500, 250],
       "flags": {},
-      "order": 8,
+      "order": 9,
       "mode": 0,
       "inputs": [
         {"name": "job_dir", "type": "STRING", "link": 9},
@@ -250,7 +268,7 @@
       "pos": [940, 80],
       "size": [420, 210],
       "flags": {},
-      "order": 9,
+      "order": 10,
       "mode": 0,
       "inputs": [
         {"name": "cancel_now", "type": "BOOLEAN", "link": null},
@@ -273,7 +291,7 @@
       "pos": [940, 340],
       "size": [420, 230],
       "flags": {},
-      "order": 10,
+      "order": 11,
       "mode": 0,
       "inputs": [
         {"name": "yvann_workflow_path", "type": "STRING", "link": null}
@@ -299,7 +317,8 @@
     [8, 5, 0, 9, 1, "STRING"],
     [9, 5, 1, 8, 0, "STRING"],
     [10, 11, 0, 5, 1, "STRING"],
-    [11, 11, 0, 6, 0, "STRING"]
+    [11, 11, 0, 6, 0, "STRING"],
+    [12, 6, 1, 12, 0, "STRING"]
   ],
   "groups": [
     {

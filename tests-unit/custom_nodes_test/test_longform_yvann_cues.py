@@ -72,3 +72,33 @@ def test_dense_visual_cues_do_not_force_one_second_render_chunks():
     assert chunks[0].chunk_duration == 30.5
     assert chunks[0].visual_cues is not None
     assert len(chunks[0].visual_cues) == 31
+
+
+def test_one_second_cues_still_plan_one_image_each():
+    config = JobConfig(
+        script_path="script.txt",
+        audio_path="audio.mp3",
+        global_style_prompt="cinematic",
+        output_root="output",
+        render_profile="custom",
+        image_interval_seconds=5.0,
+    )
+    runner = LongformYvannRunner.__new__(LongformYvannRunner)
+    runner.config = config
+
+    assert runner._image_count_for_cue_duration(1.0) == 1
+
+
+def test_five_second_cues_plan_start_and_end_keyframes():
+    config = JobConfig(
+        script_path="script.txt",
+        audio_path="audio.mp3",
+        global_style_prompt="cinematic",
+        output_root="output",
+        render_profile="custom",
+        image_interval_seconds=5.0,
+    )
+    runner = LongformYvannRunner.__new__(LongformYvannRunner)
+    runner.config = config
+
+    assert runner._image_count_for_cue_duration(5.0) == 2

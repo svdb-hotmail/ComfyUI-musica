@@ -588,6 +588,13 @@ class LongformYvannRunner:
     def _image_count_for_duration(self, duration: float, minimum: int = 2) -> int:
         return max(minimum, int(math.ceil(duration / max(self.config.image_interval_seconds, 1e-6))))
 
+    def _image_count_for_cue_duration(self, duration: float) -> int:
+        interval = max(self.config.image_interval_seconds, 1e-6)
+        count = self._image_count_for_duration(duration, minimum=1)
+        if duration >= interval * 0.75:
+            count += 1
+        return count
+
     @staticmethod
     def _vae_safe_dimension(value: int) -> int:
         return max(64, int(math.ceil(max(1, value) / 8) * 8))
@@ -750,6 +757,8 @@ class LongformYvannRunner:
             "yvann_audio_analysis_mode": self.config.yvann_audio_analysis_mode,
             "number_of_chunks": len(chunks),
             "current_chunk_index": 0,
+            "current_chunk_id": "",
+            "current_stage": "starting",
             "completed_chunks": [],
             "failed_chunks": [],
             "image_generation_status": {},
@@ -1031,7 +1040,7 @@ class LongformYvannRunner:
                 cue_start = float(cue.get("start", chunk.start_time))
                 cue_end = float(cue.get("end", chunk.end_time))
                 cue_duration = max(0.001, min(cue_end, chunk.end_time) - max(cue_start, chunk.start_time))
-                image_count = self._image_count_for_duration(cue_duration, minimum=1)
+                image_count = self._image_count_for_cue_duration(cue_duration)
                 for image_number in range(1, image_count + 1):
                     image_jobs.append((cue_id, str(cue.get("prompt") or chunk.scene_prompt), image_number, image_count))
         else:
@@ -1364,19 +1373,37 @@ class LongformYvannRunner:
                 continue
 
             state["current_chunk_index"] = chunk.index
+            state["current_chunk_id"] = chunk.chunk_id
+            state["current_stage"] = "preparing_chunk"
             state["updated_at"] = now_utc()
             state["timestamps"]["last_update"] = now_utc()
+            self._write_job_state(state)
 
             try:
                 self._raise_if_cancelled()
+                state["current_stage"] = "splitting_audio"
+                state["updated_at"] = now_utc()
+                state["timestamps"]["last_update"] = now_utc()
+                self._write_job_state(state)
                 self.split_audio_for_chunk(chunk)
                 state["image_generation_status"].setdefault(chunk.chunk_id, "pending")
+                state["current_stage"] = "generating_keyframes"
+                state["updated_at"] = now_utc()
+                state["timestamps"]["last_update"] = now_utc()
+                self._write_job_state(state)
                 self.generate_images_for_chunk(chunk)
                 state["image_generation_status"][chunk.chunk_id] = "completed"
+                state["updated_at"] = now_utc()
+                state["timestamps"]["last_update"] = now_utc()
+                self._write_job_state(state)
 
                 if not dry_run:
                     self._raise_if_cancelled()
                     state["video_generation_status"].setdefault(chunk.chunk_id, "pending")
+                    state["current_stage"] = "rendering_video"
+                    state["updated_at"] = now_utc()
+                    state["timestamps"]["last_update"] = now_utc()
+                    self._write_job_state(state)
                     assert base_prompt is not None
                     self.render_chunk_video(chunk, base_prompt)
                     state["video_generation_status"][chunk.chunk_id] = "completed"
@@ -1385,6 +1412,7 @@ class LongformYvannRunner:
                 chunk.error = None
                 if chunk.chunk_id not in state["completed_chunks"]:
                     state["completed_chunks"].append(chunk.chunk_id)
+                state["current_stage"] = "chunk_completed"
             except JobCancelled as exc:
                 chunk.status = "cancelled"
                 chunk.error = str(exc)
@@ -1418,20 +1446,28 @@ class LongformYvannRunner:
         if state.get("status") != "cancelled" and not dry_run and self.config.final_concat:
             try:
                 self._raise_if_cancelled()
+                state["current_stage"] = "concatenating_final_video"
+                state["updated_at"] = now_utc()
+                state["timestamps"]["last_update"] = now_utc()
+                self._write_job_state(state)
                 self.concat_videos(chunks)
                 state["final_concat_status"] = "completed"
                 if state.get("status") != "cancelled" and not state["failed_chunks"]:
                     state["status"] = "completed"
+                    state["current_stage"] = "completed"
             except Exception as exc:  # noqa: BLE001
                 state["final_concat_status"] = f"failed: {exc}"
                 if state.get("status") != "cancelled":
                     state["status"] = "failed"
+                    state["current_stage"] = "failed"
             self._write_job_state(state)
         elif dry_run and state.get("status") != "cancelled":
             state["status"] = "planned"
+            state["current_stage"] = "planned"
             self._write_job_state(state)
         elif not dry_run and not self.config.final_concat and state.get("status") != "cancelled":
             state["status"] = "completed" if not state["failed_chunks"] else "failed"
+            state["current_stage"] = state["status"]
             self._write_job_state(state)
 
         return {
