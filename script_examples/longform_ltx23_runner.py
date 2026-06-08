@@ -9,16 +9,13 @@ API, persists state for resume/cancel, and optionally concatenates final clips.
 from __future__ import annotations
 
 import argparse
-import copy
 import dataclasses
 import hashlib
 import json
-import math
-import os
 import random
-import re
 import shutil
 import subprocess
+import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -653,7 +650,7 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     result = LongformLTX23Runner(load_config(args.config)).run(dry_run=args.dry_run)
-    print(json.dumps(result, indent=2))
+    sys.stdout.write(json.dumps(result, indent=2) + "\n")
     return 0
 
 

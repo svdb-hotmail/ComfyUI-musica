@@ -16,7 +16,6 @@ import dataclasses
 import hashlib
 import json
 import math
-import os
 import random
 import re
 import shutil
@@ -1495,7 +1494,7 @@ def main() -> int:
     cfg = load_config(Path(args.config).resolve())
     runner = LongformYvannRunner(cfg)
     result = runner.run(dry_run=args.dry_run)
-    print(json.dumps(result, indent=2))
+    sys.stdout.write(json.dumps(result, indent=2) + "\n")
     return 0
 
 

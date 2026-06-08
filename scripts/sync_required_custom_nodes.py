@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import argparse
 import json
-import os
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -162,12 +161,12 @@ def main():
     out_path = custom_nodes_dir / "required_nodes_sync_report.json"
     out_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
 
-    print(f"Wrote report: {out_path}")
+    sys.stdout.write(f"Wrote report: {out_path}\n")
     failures = [r for r in report["results"] if r["status"] in {"missing", "error"}]
     if failures:
-        print(f"Sync finished with {len(failures)} issue(s).")
+        sys.stdout.write(f"Sync finished with {len(failures)} issue(s).\n")
         return 1
-    print("Sync finished successfully.")
+    sys.stdout.write("Sync finished successfully.\n")
     return 0
 
 
