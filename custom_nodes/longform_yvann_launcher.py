@@ -7,8 +7,6 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-import re
-from typing import Any
 
 from aiohttp import web
 import torch
@@ -861,15 +859,16 @@ class LongformLTX23Launcher:
                 "output_root": ("STRING", {"multiline": False, "default": "output/longform_ltx23"}),
                 "workflow_template_path": (
                     "STRING",
-                    {"multiline": False, "default": "script_examples/workflows/Movie_Builder_LTX2.3_workflow.json"},
+                    {"multiline": False, "default": "script_examples/workflows/video_ltx2_3_ia2v.json"},
                 ),
-                "renderer": (["movie_builder", "ia2v"], {"default": "movie_builder"}),
+                "renderer": (["movie_builder", "ia2v"], {"default": "ia2v"}),
                 "shot_duration_seconds": ("FLOAT", {"default": 6.0, "min": 1.0, "max": 30.0, "step": 1.0}),
                 "max_shots": ("INT", {"default": 0, "min": 0, "max": 10000, "step": 1}),
                 "width": ("INT", {"default": 1280, "min": 256, "max": 4096, "step": 8}),
                 "height": ("INT", {"default": 720, "min": 256, "max": 4096, "step": 8}),
                 "fps": ("INT", {"default": 24, "min": 1, "max": 60, "step": 1}),
                 "prompt_enhance": ("BOOLEAN", {"default": True}),
+                "use_previous_final_frame": ("BOOLEAN", {"default": True}),
                 "enable_upscale": ("BOOLEAN", {"default": False}),
                 "enable_voice_reference": ("BOOLEAN", {"default": False}),
                 "seed_strategy": (["derived", "deterministic", "random"], {"default": "derived"}),
@@ -906,6 +905,7 @@ class LongformLTX23Launcher:
         height,
         fps,
         prompt_enhance,
+        use_previous_final_frame,
         enable_upscale,
         enable_voice_reference,
         seed_strategy,
@@ -938,6 +938,7 @@ class LongformLTX23Launcher:
             "height": int(height or 720),
             "fps": int(fps or 24),
             "prompt_enhance": bool(prompt_enhance),
+            "use_previous_final_frame": bool(use_previous_final_frame),
             "enable_upscale": bool(enable_upscale),
             "enable_voice_reference": bool(enable_voice_reference),
             "seed_strategy": str(seed_strategy),

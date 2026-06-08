@@ -45,6 +45,31 @@ def test_existing_explicit_comment_timestamp_format_still_works():
     assert backend_cues[1].summary == "Rocket taking off."
 
 
+def test_markdown_clip_plan_extracts_explicit_ranges():
+    cue_sheet = """# Example Plan
+
+## Section 1 - 0:00-1:01
+
+### Clip 1A - 0:00-0:20 - 20s
+```text
+The road movie begins inside the TV screen. Keep the CRT centered.
+```
+
+### Clip 1B - 0:20-0:40 - 20s
+```text
+The driver continues forward. Preserve sunglasses and desert direction.
+```
+"""
+
+    cues = parse_visual_cue_markers(cue_sheet, total_duration=445.0)
+
+    assert [cue["start"] for cue in cues] == [0.0, 20.0]
+    assert [cue["end"] for cue in cues] == [20.0, 40.0]
+    assert cues[0]["id"] == "Clip 1A"
+    assert cues[0]["summary"] == "The road movie begins inside the TV screen. Keep the CRT centered."
+    assert "Preserve sunglasses" in cues[1]["summary"]
+
+
 def test_dense_visual_cues_do_not_force_one_second_render_chunks():
     cue_sheet = "\n".join(
         f"00:00:{idx:02d}  {idx + 1} Section {idx + 1} # Visual scene {idx + 1}"

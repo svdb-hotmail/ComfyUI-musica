@@ -15,6 +15,12 @@ def hms_to_sec(value: str) -> float:
 
 
 def parse_visual_cue_markers(cue_sheet_text: str, total_duration: float | None = None) -> list[dict[str, object]]:
+    clip_heading_pattern = re.compile(
+        r"^\s*#{1,6}\s*(?P<label>.*?\bclip\b.*?)\s+[\-\u2013\u2014]\s*"
+        r"(?P<start>\d{1,2}:\d{2}(?::\d{2})?(?:\.\d{1,3})?)\s*[\-\u2013\u2014]\s*"
+        r"(?P<end>\d{1,2}:\d{2}(?::\d{2})?(?:\.\d{1,3})?)\b.*$",
+        re.IGNORECASE,
+    )
     explicit_marker_pattern = re.compile(
         r"#\s*(?:(?P<label>[A-Z])\.\s*)?(?P<time>\d{1,2}:\d{2}:\d{2}(?:\.\d{1,3})?)\s*(?P<text>.*)$",
         re.IGNORECASE,
@@ -25,13 +31,40 @@ def parse_visual_cue_markers(cue_sheet_text: str, total_duration: float | None =
     continuation_pattern = re.compile(r"^\s*#\s*(?P<text>.+?)\s*$")
 
     markers: list[tuple[str, float, list[str]]] = []
+    explicit_ends: dict[int, float] = {}
+    active_markdown_marker: int | None = None
+    in_fence = False
     for line in str(cue_sheet_text).splitlines():
+        stripped = line.strip()
+        if stripped.startswith("```"):
+            in_fence = not in_fence
+            continue
+
+        clip_heading = clip_heading_pattern.match(line)
+        if clip_heading:
+            label = " ".join(clip_heading.group("label").strip().split()) or f"cue_{len(markers) + 1:02d}"
+            start_time = hms_to_sec(clip_heading.group("start"))
+            end_time = hms_to_sec(clip_heading.group("end"))
+            markers.append((label, start_time, []))
+            if end_time > start_time:
+                explicit_ends[len(markers) - 1] = end_time
+            active_markdown_marker = len(markers) - 1
+            continue
+
+        if active_markdown_marker is not None:
+            if stripped.startswith("#") and not in_fence:
+                active_markdown_marker = None
+            elif stripped:
+                markers[active_markdown_marker][2].append(stripped)
+                continue
+
         marker = explicit_marker_pattern.search(line)
         if marker:
             label = (marker.group("label") or f"cue_{len(markers) + 1:02d}").upper()
             start_time = hms_to_sec(marker.group("time"))
             text = marker.group("text").strip()
             markers.append((label, start_time, [text] if text else []))
+            active_markdown_marker = None
             continue
 
         line_comment = line_comment_pattern.match(line)
@@ -40,6 +73,7 @@ def parse_visual_cue_markers(cue_sheet_text: str, total_duration: float | None =
             start_time = hms_to_sec(line_comment.group("time"))
             text = line_comment.group("text").strip()
             markers.append((label, start_time, [text] if text else []))
+            active_markdown_marker = None
             continue
 
         continuation = continuation_pattern.match(line)
@@ -56,9 +90,9 @@ def parse_visual_cue_markers(cue_sheet_text: str, total_duration: float | None =
     for idx, (label, start_time, parts) in enumerate(markers):
         if fallback_end is not None and start_time >= fallback_end:
             continue
-        next_start = fallback_end or (start_time + 45.0)
+        next_start = explicit_ends.get(idx, fallback_end or (start_time + 45.0))
         for _next_label, candidate_start, _next_parts in markers[idx + 1 :]:
-            if candidate_start > start_time:
+            if candidate_start > start_time and idx not in explicit_ends:
                 next_start = candidate_start
                 break
         if fallback_end is not None:

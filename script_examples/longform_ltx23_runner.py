@@ -76,6 +76,9 @@ class LTXShot:
     audio_chunk_path: str
     video_path: str
     seed: int
+    source_image_path: str | None = None
+    reference_image_path: str | None = None
+    final_frame_path: str | None = None
     status: str = "planned"
     error: str | None = None
     prompt_id: str | None = None
@@ -276,7 +279,12 @@ class LongformLTX23Runner:
     def _build_prompt(self, summary: str, start: float, end: float, previous: str | None) -> str:
         continuity = ""
         if previous:
-            continuity = f" Keep continuity from the previous shot: {previous[:220]}."
+            continuity = (
+                f" Keep continuity from the previous shot: {previous[:220]}. "
+                "Preserve the same subject identity, world state, camera direction, and narrative progression."
+            )
+        if self.config.use_previous_final_frame:
+            continuity += " Use the provided reference frame as the exact visual state to continue from."
         return (
             f"{self.config.global_style_prompt}. "
             f"Shot {sec_to_hms(start)} to {sec_to_hms(end)}: {summary.strip()} "
@@ -307,6 +315,7 @@ class LongformLTX23Runner:
                     prompt=prompt,
                     summary=summary.strip(),
                     image_path=str(image_path),
+                    source_image_path=str(image_path),
                     audio_chunk_path=str(self.audio_chunks_dir / f"{shot_id}.wav"),
                     video_path=str(self.videos_dir / f"{shot_id}.mp4"),
                     seed=seed,
@@ -376,6 +385,38 @@ class LongformLTX23Runner:
             "48000",
             str(out),
         ])
+
+    def final_frame_path_for_shot(self, shot: LTXShot) -> Path:
+        return self.frames_dir / f"{shot.shot_id}_final.png"
+
+    def extract_final_frame(self, shot: LTXShot) -> Path:
+        out = self.final_frame_path_for_shot(shot)
+        if out.exists() and not self.config.overwrite:
+            shot.final_frame_path = str(out)
+            return out
+        out.parent.mkdir(parents=True, exist_ok=True)
+        run_cmd([
+            "ffmpeg",
+            "-y",
+            "-sseof",
+            "-0.15",
+            "-i",
+            str(Path(shot.video_path)),
+            "-frames:v",
+            "1",
+            str(out),
+        ])
+        shot.final_frame_path = str(out)
+        return out
+
+    def _apply_continuity_reference(self, shot: LTXShot, previous_shot: LTXShot | None) -> None:
+        if not self.config.use_previous_final_frame or previous_shot is None:
+            return
+        reference = previous_shot.final_frame_path or str(self.final_frame_path_for_shot(previous_shot))
+        reference_path = Path(reference)
+        if reference_path.exists():
+            shot.reference_image_path = str(reference_path)
+            shot.image_path = str(reference_path)
 
     @staticmethod
     def _workflow_nodes(workflow: dict[str, Any]) -> list[dict[str, Any]]:
@@ -479,10 +520,10 @@ class LongformLTX23Runner:
     def _output_video_from_history(self, history: dict[str, Any]) -> Path | None:
         outputs = history.get("outputs", {})
         for output in outputs.values():
-            for key in ("videos", "gifs"):
+            for key in ("videos", "gifs", "images"):
                 for item in output.get(key, []) if isinstance(output, dict) else []:
                     filename = item.get("filename")
-                    if not filename:
+                    if not filename or Path(str(filename)).suffix.lower() not in {".mp4", ".webm", ".mov", ".mkv", ".gif"}:
                         continue
                     subfolder = item.get("subfolder") or ""
                     kind = item.get("type") or "output"
@@ -508,6 +549,8 @@ class LongformLTX23Runner:
             raise RuntimeError("No video output found in Comfy history")
         out_path.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(generated, out_path)
+        if self.config.use_previous_final_frame:
+            self.extract_final_frame(shot)
 
     def concat_videos(self, shots: list[LTXShot]) -> Path:
         final = self.final_dir / "final_concat.mp4"
@@ -568,6 +611,7 @@ class LongformLTX23Runner:
             self._write_state(state)
             return {"job_id": self.job_id, "job_dir": str(self.job_dir), "shot_count": len(shots), "dry_run": True}
 
+        previous_completed_shot: LTXShot | None = None
         for shot in shots:
             if self._cancel_requested():
                 state["status"] = "cancelled"
@@ -575,8 +619,11 @@ class LongformLTX23Runner:
                 self._write_state(state)
                 break
             if Path(shot.video_path).exists() and not self.config.overwrite:
+                if self.config.use_previous_final_frame:
+                    self.extract_final_frame(shot)
                 if shot.shot_id not in state["completed_shots"]:
                     state["completed_shots"].append(shot.shot_id)
+                previous_completed_shot = shot
                 continue
             state["current_shot_index"] = shot.index
             state["current_shot_id"] = shot.shot_id
@@ -586,11 +633,13 @@ class LongformLTX23Runner:
             try:
                 self._raise_if_cancelled()
                 self.split_audio_for_shot(shot)
+                self._apply_continuity_reference(shot, previous_completed_shot)
                 state["current_stage"] = "rendering_ltx_video"
                 state["updated_at"] = now_utc()
                 self._write_state(state)
                 self.render_shot(shot)
                 shot.status = "completed"
+                previous_completed_shot = shot
                 if shot.shot_id not in state["completed_shots"]:
                     state["completed_shots"].append(shot.shot_id)
             except JobCancelled as exc:
