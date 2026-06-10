@@ -29,10 +29,26 @@ trap 'echo "[ERROR] Line $LINENO failed." >&2' ERR
 
 COMFYUI_DIR="${COMFYUI_DIR:-/workspace/ComfyUI}"
 MODELS_DIR="$COMFYUI_DIR/models"
+PYTHON_BIN="${PYTHON_BIN:-/venv/main/bin/python}"
 MAX_PARALLEL_DOWNLOADS="${MAX_PARALLEL_DOWNLOADS:-4}"
 DOWNLOAD_OPTIONAL_ACCELERATORS="${DOWNLOAD_OPTIONAL_ACCELERATORS:-0}"
 DOWNLOAD_BF16="${DOWNLOAD_BF16:-0}"
 DOWNLOAD_QWEN_CONTROLLER_TEXT_ENCODER="${DOWNLOAD_QWEN_CONTROLLER_TEXT_ENCODER:-1}"
+INSTALL_COMFY_DEPENDENCIES="${INSTALL_COMFY_DEPENDENCIES:-1}"
+INSTALL_CUSTOM_NODES="${INSTALL_CUSTOM_NODES:-1}"
+INSTALL_CUSTOM_NODE_REQUIREMENTS="${INSTALL_CUSTOM_NODE_REQUIREMENTS:-1}"
+INSTALL_VLLM_QWEN35="${INSTALL_VLLM_QWEN35:-0}"
+START_VLLM_QWEN35="${START_VLLM_QWEN35:-0}"
+START_RWBT_DIRECTOR="${START_RWBT_DIRECTOR:-0}"
+QWEN35_MODEL="${QWEN35_MODEL:-Qwen/Qwen3.5-9B-Instruct}"
+VLLM_HOST="${VLLM_HOST:-127.0.0.1}"
+VLLM_PORT="${VLLM_PORT:-8000}"
+VLLM_MAX_MODEL_LEN="${VLLM_MAX_MODEL_LEN:-8192}"
+VLLM_GPU_UTIL="${VLLM_GPU_UTIL:-0.92}"
+VLLM_DTYPE="${VLLM_DTYPE:-auto}"
+CUSTOM_NODES_MANIFEST="${CUSTOM_NODES_MANIFEST:-$COMFYUI_DIR/scripts/required_custom_nodes.json}"
+SYNC_CUSTOM_NODES_SCRIPT="${SYNC_CUSTOM_NODES_SCRIPT:-$COMFYUI_DIR/scripts/sync_required_custom_nodes.py}"
+SYNC_REPORT_PATH="$COMFYUI_DIR/custom_nodes/required_nodes_sync_report.json"
 
 # Optional tokens
 CIVITAI_TOKEN="${CIVITAI_TOKEN:-}"
@@ -50,6 +66,131 @@ require_cmd curl
 require_cmd mktemp
 require_cmd mv
 require_cmd ls
+require_cmd git
+
+if [[ ! -x "$PYTHON_BIN" ]]; then
+  echo "[ERROR] Python executable not found or not executable: $PYTHON_BIN" >&2
+  exit 1
+fi
+
+install_comfy_dependencies() {
+  if [[ "$INSTALL_COMFY_DEPENDENCIES" != "1" ]]; then
+    echo "[INFO] Skipping ComfyUI Python dependencies (INSTALL_COMFY_DEPENDENCIES=$INSTALL_COMFY_DEPENDENCIES)."
+    return 0
+  fi
+
+  echo "[INFO] Installing ComfyUI Python dependencies..."
+  if [[ -f "$COMFYUI_DIR/requirements.txt" ]]; then
+    "$PYTHON_BIN" -m pip install -r "$COMFYUI_DIR/requirements.txt"
+  fi
+  if [[ -f "$COMFYUI_DIR/manager_requirements.txt" ]]; then
+    "$PYTHON_BIN" -m pip install -r "$COMFYUI_DIR/manager_requirements.txt"
+  fi
+}
+
+sync_required_custom_nodes() {
+  if [[ "$INSTALL_CUSTOM_NODES" != "1" ]]; then
+    echo "[INFO] Skipping required custom node sync (INSTALL_CUSTOM_NODES=$INSTALL_CUSTOM_NODES)."
+    return 0
+  fi
+
+  if [[ ! -f "$SYNC_CUSTOM_NODES_SCRIPT" ]]; then
+    echo "[WARN] Custom-node sync script not found: $SYNC_CUSTOM_NODES_SCRIPT"
+    return 0
+  fi
+  if [[ ! -f "$CUSTOM_NODES_MANIFEST" ]]; then
+    echo "[WARN] Custom-node manifest not found: $CUSTOM_NODES_MANIFEST"
+    return 0
+  fi
+
+  echo "[INFO] Syncing required custom nodes from manifest..."
+  if [[ "$INSTALL_CUSTOM_NODE_REQUIREMENTS" == "1" ]]; then
+    "$PYTHON_BIN" "$SYNC_CUSTOM_NODES_SCRIPT" \
+      --comfy-root "$COMFYUI_DIR" \
+      --manifest "$CUSTOM_NODES_MANIFEST" \
+      --install-requirements \
+      --python-bin "$PYTHON_BIN"
+  else
+    "$PYTHON_BIN" "$SYNC_CUSTOM_NODES_SCRIPT" \
+      --comfy-root "$COMFYUI_DIR" \
+      --manifest "$CUSTOM_NODES_MANIFEST" \
+      --python-bin "$PYTHON_BIN"
+  fi
+}
+
+install_vllm_qwen35() {
+  if [[ "$INSTALL_VLLM_QWEN35" != "1" ]]; then
+    echo "[INFO] Skipping vLLM install (INSTALL_VLLM_QWEN35=$INSTALL_VLLM_QWEN35)."
+    return 0
+  fi
+
+  echo "[INFO] Installing vLLM for Qwen 3.5 serving..."
+  "$PYTHON_BIN" -m pip install -U vllm
+}
+
+start_vllm_qwen35() {
+  if [[ "$START_VLLM_QWEN35" != "1" ]]; then
+    return 0
+  fi
+
+  if ! "$PYTHON_BIN" -c "import importlib.util as u; raise SystemExit(0 if u.find_spec('vllm') else 1)"; then
+    echo "[WARN] START_VLLM_QWEN35=1 but vLLM is not installed. Enable INSTALL_VLLM_QWEN35=1."
+    return 0
+  fi
+
+  if command -v ss >/dev/null 2>&1 && ss -ltn | grep -q ":$VLLM_PORT"; then
+    echo "[INFO] vLLM already listening on port $VLLM_PORT."
+    return 0
+  fi
+
+  echo "[INFO] Starting vLLM OpenAI server for model: $QWEN35_MODEL"
+  nohup "$PYTHON_BIN" -m vllm.entrypoints.openai.api_server \
+    --model "$QWEN35_MODEL" \
+    --host "$VLLM_HOST" \
+    --port "$VLLM_PORT" \
+    --max-model-len "$VLLM_MAX_MODEL_LEN" \
+    --gpu-memory-utilization "$VLLM_GPU_UTIL" \
+    --dtype "$VLLM_DTYPE" \
+    > "$COMFYUI_DIR/output/vllm_qwen35.log" 2>&1 &
+  echo "[INFO] vLLM PID: $!"
+}
+
+start_rwbt_director() {
+  if [[ "$START_RWBT_DIRECTOR" != "1" ]]; then
+    return 0
+  fi
+
+  if command -v ss >/dev/null 2>&1 && ss -ltn | grep -q ':8099'; then
+    echo "[INFO] RWBT director already listening on port 8099."
+    return 0
+  fi
+
+  if [[ -f "$COMFYUI_DIR/script_examples/rwbt_director_server.py" ]]; then
+    echo "[INFO] Starting RWBT director server..."
+    nohup "$PYTHON_BIN" "$COMFYUI_DIR/script_examples/rwbt_director_server.py" \
+      > "$COMFYUI_DIR/output/rwbt_director.log" 2>&1 &
+    echo "[INFO] RWBT director PID: $!"
+  else
+    echo "[WARN] RWBT director server script not found: $COMFYUI_DIR/script_examples/rwbt_director_server.py"
+  fi
+}
+
+validate_rwbt_files() {
+  chmod +x "$COMFYUI_DIR/input/RWBT/install_comfyui_models.sh" 2>/dev/null || true
+  chmod +x "$COMFYUI_DIR/script_examples/start_rwbt_director.sh" 2>/dev/null || true
+  chmod +x "$COMFYUI_DIR/script_examples/stop_rwbt_director.sh" 2>/dev/null || true
+
+  local py_targets=()
+  [[ -f "$COMFYUI_DIR/script_examples/rwbt_director_server.py" ]] && py_targets+=("$COMFYUI_DIR/script_examples/rwbt_director_server.py")
+  [[ -f "$COMFYUI_DIR/script_examples/rwbt_keyframe_ai_runner.py" ]] && py_targets+=("$COMFYUI_DIR/script_examples/rwbt_keyframe_ai_runner.py")
+  [[ -f "$COMFYUI_DIR/custom_nodes/comfyui-rwbt-director/__init__.py" ]] && py_targets+=("$COMFYUI_DIR/custom_nodes/comfyui-rwbt-director/__init__.py")
+  [[ -f "$COMFYUI_DIR/custom_nodes/comfyui-rwbt-director/director_core.py" ]] && py_targets+=("$COMFYUI_DIR/custom_nodes/comfyui-rwbt-director/director_core.py")
+
+  if [[ ${#py_targets[@]} -gt 0 ]]; then
+    echo "[INFO] Running Python syntax checks for RWBT runtime files..."
+    "$PYTHON_BIN" -m py_compile "${py_targets[@]}"
+  fi
+}
 
 HAVE_ARIA2C=0
 
@@ -92,6 +233,11 @@ RUNNING_DOWNLOADS=0
 declare -A SCHEDULED_TARGETS=()
 
 check_or_offer_aria2_install
+
+install_comfy_dependencies
+sync_required_custom_nodes
+install_vllm_qwen35
+validate_rwbt_files
 
 mkdir -p \
   "$MODELS_DIR/diffusion_models" \
@@ -321,6 +467,9 @@ echo "       - Maximum fidelity: use bf16 only if you can accept the extra disk 
 
 wait
 
+start_vllm_qwen35
+start_rwbt_director
+
 # ------------------------------------------------------------
 # Final status summary
 # ------------------------------------------------------------
@@ -358,4 +507,10 @@ if [[ "$DOWNLOAD_BF16" == "1" ]]; then
 fi
 
 echo
+if [[ -f "$SYNC_REPORT_PATH" ]]; then
+  echo "[SUMMARY] Custom node sync report: $SYNC_REPORT_PATH"
+fi
+if command -v ss >/dev/null 2>&1; then
+  ss -ltn | grep -E ":18188|:8099|:$VLLM_PORT" || true
+fi
 echo "[DONE] Model installation script finished."
