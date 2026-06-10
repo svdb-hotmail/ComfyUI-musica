@@ -3,6 +3,7 @@ __pycache__/
 /output/
 /input/
 !/input/example.png
+!/input/RWBT/install_comfyui_models.sh
 /models/
 /temp/
 /custom_nodes/
@@ -25,3 +26,4 @@ web_custom_versions/
 filtered-openapi.yaml
 uv.lock
 .comfy_environment
+ComfyUI-musica-SDp-integration.code-workspace
