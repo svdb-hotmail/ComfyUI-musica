@@ -514,8 +514,7 @@ class LongformLTX23Runner:
         dst = input_dir / path.name
         if dst.exists() and dst.resolve() == path.resolve():
             return
-        if not dst.exists() or self.config.overwrite:
-            shutil.copy2(path, dst)
+        shutil.copy2(path, dst)
 
     def _output_video_from_history(self, history: dict[str, Any]) -> Path | None:
         outputs = history.get("outputs", {})

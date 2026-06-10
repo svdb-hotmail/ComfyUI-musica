@@ -1,0 +1,380 @@
+{
+  "id": "65e80f44-652a-48b6-a33a-2b952f0d9e2d",
+  "revision": 0,
+  "last_node_id": 20,
+  "last_link_id": 20,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "UNETLoader",
+      "pos": [-1320, -350],
+      "size": [360, 82],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        { "name": "MODEL", "type": "MODEL", "slot_index": 0, "links": [1] }
+      ],
+      "properties": { "Node name for S&R": "UNETLoader" },
+      "widgets_values": ["qwen_image_2512_fp8_e4m3fn.safetensors", "default"]
+    },
+    {
+      "id": 2,
+      "type": "ModelSamplingAuraFlow",
+      "pos": [-900, -350],
+      "size": [330, 80],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        { "name": "model", "type": "MODEL", "link": 1 }
+      ],
+      "outputs": [
+        { "name": "MODEL", "type": "MODEL", "slot_index": 0, "links": [2] }
+      ],
+      "properties": { "Node name for S&R": "ModelSamplingAuraFlow" },
+      "widgets_values": [3.1]
+    },
+    {
+      "id": 3,
+      "type": "CLIPLoader",
+      "pos": [-1320, -210],
+      "size": [380, 106],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        { "name": "CLIP", "type": "CLIP", "slot_index": 0, "links": [3, 4, 5, 6, 7] }
+      ],
+      "properties": { "Node name for S&R": "CLIPLoader" },
+      "widgets_values": ["qwen_2.5_vl_7b_fp8_scaled.safetensors", "qwen_image", "default"]
+    },
+    {
+      "id": 4,
+      "type": "VAELoader",
+      "pos": [-1320, -60],
+      "size": [320, 60],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        { "name": "VAE", "type": "VAE", "slot_index": 0, "links": [8, 9] }
+      ],
+      "properties": { "Node name for S&R": "VAELoader" },
+      "widgets_values": ["qwen_image_vae.safetensors"]
+    },
+    {
+      "id": 5,
+      "type": "KfKeyframedConditionWithText",
+      "pos": [-760, -570],
+      "size": [450, 220],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        { "name": "clip", "type": "CLIP", "link": 3 },
+        { "name": "schedule", "type": "SCHEDULE", "link": null }
+      ],
+      "outputs": [
+        { "name": "KEYFRAMED_CONDITION", "type": "KEYFRAMED_CONDITION", "slot_index": 0, "links": null },
+        { "name": "CONDITIONING", "type": "CONDITIONING", "slot_index": 1, "links": null },
+        { "name": "SCHEDULE", "type": "SCHEDULE", "slot_index": 2, "links": [10] }
+      ],
+      "properties": { "Node name for S&R": "KfKeyframedConditionWithText" },
+      "widgets_values": ["RWBT START PROMPT", 0, "linear"]
+    },
+    {
+      "id": 6,
+      "type": "KfKeyframedConditionWithText",
+      "pos": [-260, -570],
+      "size": [450, 220],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        { "name": "clip", "type": "CLIP", "link": 4 },
+        { "name": "schedule", "type": "SCHEDULE", "link": 10 }
+      ],
+      "outputs": [
+        { "name": "KEYFRAMED_CONDITION", "type": "KEYFRAMED_CONDITION", "slot_index": 0, "links": null },
+        { "name": "CONDITIONING", "type": "CONDITIONING", "slot_index": 1, "links": null },
+        { "name": "SCHEDULE", "type": "SCHEDULE", "slot_index": 2, "links": [11] }
+      ],
+      "properties": { "Node name for S&R": "KfKeyframedConditionWithText" },
+      "widgets_values": ["RWBT MID PROMPT", 12, "linear"]
+    },
+    {
+      "id": 7,
+      "type": "KfKeyframedConditionWithText",
+      "pos": [240, -570],
+      "size": [450, 220],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        { "name": "clip", "type": "CLIP", "link": 5 },
+        { "name": "schedule", "type": "SCHEDULE", "link": 11 }
+      ],
+      "outputs": [
+        { "name": "KEYFRAMED_CONDITION", "type": "KEYFRAMED_CONDITION", "slot_index": 0, "links": null },
+        { "name": "CONDITIONING", "type": "CONDITIONING", "slot_index": 1, "links": null },
+        { "name": "SCHEDULE", "type": "SCHEDULE", "slot_index": 2, "links": [12] }
+      ],
+      "properties": { "Node name for S&R": "KfKeyframedConditionWithText" },
+      "widgets_values": ["RWBT END PROMPT", 24, "linear"]
+    },
+    {
+      "id": 8,
+      "type": "KfGetScheduleConditionAtTime",
+      "pos": [740, -500],
+      "size": [330, 100],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        { "name": "schedule", "type": "SCHEDULE", "link": 12 }
+      ],
+      "outputs": [
+        { "name": "CONDITIONING", "type": "CONDITIONING", "slot_index": 0, "links": [13] }
+      ],
+      "properties": { "Node name for S&R": "KfGetScheduleConditionAtTime" },
+      "widgets_values": [12]
+    },
+    {
+      "id": 9,
+      "type": "LoadImage",
+      "pos": [-760, -220],
+      "size": [330, 320],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        { "name": "IMAGE", "type": "IMAGE", "slot_index": 0, "links": [14] },
+        { "name": "MASK", "type": "MASK", "slot_index": 1, "links": null }
+      ],
+      "title": "REFERENCE - EDIT",
+      "properties": { "Node name for S&R": "LoadImage" },
+      "widgets_values": ["RWBT (0).png", "image"]
+    },
+    {
+      "id": 10,
+      "type": "TextEncodeQwenImageEdit",
+      "pos": [-260, -240],
+      "size": [470, 210],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        { "name": "clip", "type": "CLIP", "link": 6 },
+        { "name": "vae", "type": "VAE", "link": 8 },
+        { "name": "image", "type": "IMAGE", "link": 14 }
+      ],
+      "outputs": [
+        { "name": "CONDITIONING", "type": "CONDITIONING", "slot_index": 0, "links": [15] }
+      ],
+      "properties": { "Node name for S&R": "TextEncodeQwenImageEdit" },
+      "widgets_values": ["Use the reference image as style/composition guide while preserving scene continuity."]
+    },
+    {
+      "id": 11,
+      "type": "ConditioningAverage",
+      "pos": [260, -300],
+      "size": [360, 120],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        { "name": "conditioning_to", "type": "CONDITIONING", "link": 13 },
+        { "name": "conditioning_from", "type": "CONDITIONING", "link": 15 }
+      ],
+      "outputs": [
+        { "name": "CONDITIONING", "type": "CONDITIONING", "slot_index": 0, "links": [16] }
+      ],
+      "properties": { "Node name for S&R": "ConditioningAverage" },
+      "widgets_values": [0.35]
+    },
+    {
+      "id": 12,
+      "type": "CLIPTextEncode",
+      "pos": [260, -120],
+      "size": [430, 170],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        { "name": "clip", "type": "CLIP", "link": 7 }
+      ],
+      "outputs": [
+        { "name": "CONDITIONING", "type": "CONDITIONING", "slot_index": 0, "links": [17] }
+      ],
+      "properties": { "Node name for S&R": "CLIPTextEncode" },
+      "widgets_values": ["low quality, blurry, distorted anatomy, malformed text, watermark, logo"]
+    },
+    {
+      "id": 13,
+      "type": "EmptySD3LatentImage",
+      "pos": [740, -260],
+      "size": [330, 110],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        { "name": "LATENT", "type": "LATENT", "slot_index": 0, "links": [18] }
+      ],
+      "properties": { "Node name for S&R": "EmptySD3LatentImage" },
+      "widgets_values": [1328, 1328, 1]
+    },
+    {
+      "id": 14,
+      "type": "KSampler",
+      "pos": [1130, -340],
+      "size": [360, 320],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        { "name": "model", "type": "MODEL", "link": 2 },
+        { "name": "positive", "type": "CONDITIONING", "link": 16 },
+        { "name": "negative", "type": "CONDITIONING", "link": 17 },
+        { "name": "latent_image", "type": "LATENT", "link": 18 }
+      ],
+      "outputs": [
+        { "name": "LATENT", "type": "LATENT", "slot_index": 0, "links": [19] }
+      ],
+      "properties": { "Node name for S&R": "KSampler" },
+      "widgets_values": [464857551335368, "randomize", 50, 4, "euler", "simple", 1]
+    },
+    {
+      "id": 15,
+      "type": "VAEDecode",
+      "pos": [1540, -270],
+      "size": [220, 50],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        { "name": "samples", "type": "LATENT", "link": 19 },
+        { "name": "vae", "type": "VAE", "link": 9 }
+      ],
+      "outputs": [
+        { "name": "IMAGE", "type": "IMAGE", "slot_index": 0, "links": [20] }
+      ],
+      "properties": { "Node name for S&R": "VAEDecode" },
+      "widgets_values": []
+    },
+    {
+      "id": 16,
+      "type": "SaveImage",
+      "pos": [1810, -290],
+      "size": [420, 520],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        { "name": "images", "type": "IMAGE", "link": 20 }
+      ],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": ["RWBT_qwen2512"]
+    },
+    {
+      "id": 17,
+      "type": "RWBTDirectorSetPlan",
+      "pos": [-1800, -760],
+      "size": [420, 180],
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        { "name": "status", "type": "STRING", "slot_index": 0, "links": null },
+        { "name": "ok", "type": "BOOLEAN", "slot_index": 1, "links": null }
+      ],
+      "properties": { "Node name for S&R": "RWBTDirectorSetPlan" },
+      "widgets_values": ["rwbt-main", "", "Paste a plan or use the RWBT Director panel Upload Plan File button."]
+    },
+    {
+      "id": 18,
+      "type": "RWBTDirectorChat",
+      "pos": [-1320, -760],
+      "size": [470, 260],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        { "name": "assistant_text", "type": "STRING", "slot_index": 0, "links": null },
+        { "name": "raw_json", "type": "STRING", "slot_index": 1, "links": null }
+      ],
+      "properties": { "Node name for S&R": "RWBTDirectorChat" },
+      "widgets_values": ["rwbt-main", "Summarize current plan and next render step.", "", true, "", 0.2, 1200]
+    },
+    {
+      "id": 19,
+      "type": "RWBTDirectorListJobs",
+      "pos": [-1800, -500],
+      "size": [420, 90],
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        { "name": "jobs_json", "type": "STRING", "slot_index": 0, "links": null }
+      ],
+      "properties": { "Node name for S&R": "RWBTDirectorListJobs" },
+      "widgets_values": [""]
+    },
+    {
+      "id": 20,
+      "type": "RWBTDirectorListJobOutputs",
+      "pos": [-1320, -500],
+      "size": [470, 120],
+      "flags": {},
+      "order": 19,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        { "name": "outputs_json", "type": "STRING", "slot_index": 0, "links": null }
+      ],
+      "properties": { "Node name for S&R": "RWBTDirectorListJobOutputs" },
+      "widgets_values": ["", "", 40]
+    }
+  ],
+  "links": [
+    [1, 1, 0, 2, 0, "MODEL"],
+    [2, 2, 0, 14, 0, "MODEL"],
+    [3, 3, 0, 5, 0, "CLIP"],
+    [4, 3, 0, 6, 0, "CLIP"],
+    [5, 3, 0, 7, 0, "CLIP"],
+    [6, 3, 0, 10, 0, "CLIP"],
+    [7, 3, 0, 12, 0, "CLIP"],
+    [8, 4, 0, 10, 1, "VAE"],
+    [9, 4, 0, 15, 1, "VAE"],
+    [10, 5, 2, 6, 1, "SCHEDULE"],
+    [11, 6, 2, 7, 1, "SCHEDULE"],
+    [12, 7, 2, 8, 0, "SCHEDULE"],
+    [13, 8, 0, 11, 0, "CONDITIONING"],
+    [14, 9, 0, 10, 2, "IMAGE"],
+    [15, 10, 0, 11, 1, "CONDITIONING"],
+    [16, 11, 0, 14, 1, "CONDITIONING"],
+    [17, 12, 0, 14, 2, "CONDITIONING"],
+    [18, 13, 0, 14, 3, "LATENT"],
+    [19, 14, 0, 15, 0, "LATENT"],
+    [20, 15, 0, 16, 0, "IMAGE"]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.7,
+      "offset": [220, 260]
+    },
+    "frontendVersion": "1.31.5"
+  },
+  "version": 0.4
+}

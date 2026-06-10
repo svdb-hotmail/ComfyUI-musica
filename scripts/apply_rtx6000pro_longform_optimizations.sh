@@ -4,7 +4,8 @@ set -euo pipefail
 COMFYUI_DIR="${COMFYUI_DIR:-/workspace/ComfyUI}"
 PYTHON_BIN="${PYTHON_BIN:-/venv/main/bin/python}"
 SUPERVISOR_PROGRAM="${SUPERVISOR_PROGRAM:-comfyui}"
-COMFYUI_ARGS_VALUE="${COMFYUI_ARGS_VALUE:---disable-auto-launch --port 18188 --enable-cors-header --highvram --enable-triton-backend}"
+DEFAULT_COMFYUI_ARGS="--disable-auto-launch --port 18188 --enable-cors-header --highvram --enable-triton-backend --disable-xformers --use-pytorch-cross-attention"
+COMFYUI_ARGS_VALUE="${COMFYUI_ARGS_VALUE:-$DEFAULT_COMFYUI_ARGS}"
 
 if [[ ! -d "$COMFYUI_DIR" ]]; then
   echo "ComfyUI directory not found: $COMFYUI_DIR" >&2
@@ -60,5 +61,5 @@ else
   echo "supervisorctl not found; restart ComfyUI manually to apply COMFYUI_ARGS." >&2
 fi
 
-echo "Applied longform image-to-video dashboard, backend dashboard/cancel support, and RTX 6000PRO runtime flags."
+echo "Applied longform image-to-video dashboard, backend dashboard/cancel support, and RTX 6000PRO Blackwell runtime flags."
 echo "COMFYUI_ARGS=$COMFYUI_ARGS_VALUE"

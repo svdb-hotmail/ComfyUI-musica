@@ -39,6 +39,11 @@
       "name": "comfyui-workflow-to-api-converter-endpoint",
       "repo": "https://github.com/SethRobinson/comfyui-workflow-to-api-converter-endpoint",
       "branch": "main"
+    },
+    {
+      "name": "ComfyUI-Keyframed",
+      "repo": "https://github.com/dmarx/ComfyUI-Keyframed",
+      "branch": "main"
     }
   ]
 }
