@@ -129,7 +129,7 @@ After pulling this fork on a fresh container, run:
 bash scripts/apply_rtx6000pro_longform_optimizations.sh
 ```
 
-The script validates the runner/custom nodes, applies the single compact dashboard workflow, removes stale unused workflow copies, sets ComfyUI launch args for `--highvram` and `--enable-triton-backend`, then restarts the supervisor `comfyui` process when available. SageAttention is not enabled by default because this workflow can hit unsupported attention head dimensions and fall back noisily to PyTorch attention.
+The script validates the runner/custom nodes, applies the single compact dashboard workflow, removes stale unused workflow copies, sets ComfyUI launch args for `--highvram`, `--enable-triton-backend`, `--disable-xformers`, and `--use-pytorch-cross-attention`, then restarts the supervisor `comfyui` process when available. Xformers is disabled by default on this Blackwell target because available xformers kernels can reject compute capability 12.0 and/or fp32 audio-attention tensors. SageAttention is not enabled by default because this workflow can hit unsupported attention head dimensions and fall back noisily to PyTorch attention.
 
 Dry-run mode (planning/chunking/image generation only):
 

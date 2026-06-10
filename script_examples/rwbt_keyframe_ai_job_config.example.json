@@ -1,0 +1,67 @@
+{
+  "prompt_plan_path": "input/RWBT/RWBT_grouped_FLF2V_keyframe_image_prompts_v3.md",
+  "workflow_template_path": "user/default/workflows/rwbt_sdxl_keyframed_template.json",
+  "output_root": "output/rwbt_jobs",
+  "comfy_root": ".",
+  "comfy_api_url": "http://127.0.0.1:18188",
+  "comfy_api_verify_tls": false,
+  "width": 1344,
+  "height": 768,
+  "steps": 32,
+  "cfg": 6.0,
+  "sampler_name": "dpmpp_2m",
+  "scheduler": "karras",
+  "denoise": 1.0,
+  "model_name": "sd_xl_base_1.0.safetensors",
+  "reference_image_dir": "input/RWBT",
+  "max_reference_images": 4,
+  "reference_node_title_keywords": [
+    "reference",
+    "ref",
+    "ipadapter",
+    "adapter image"
+  ],
+  "seed_strategy": "derived",
+  "base_seed": 424242,
+  "seed_offset": 1009,
+  "negative_prompt": "text, subtitle, logo, watermark, blurry, low quality, deformed",
+  "include_plan_global_context": true,
+  "include_plan_negative_prompt": true,
+  "stop_on_failure": false,
+  "max_tasks": null,
+  "max_wait_seconds": 900,
+  "ai": {
+    "enabled": false,
+    "api_base": "http://127.0.0.1:8099/v1",
+    "model": "qwen3.5:9b",
+    "api_key_env": "OPENAI_API_KEY",
+    "director_session_id": "rwbt-main",
+    "persist_context": true,
+    "set_plan_on_run_start": true,
+    "plan_max_chars": 120000,
+    "temperature": 0.2,
+    "max_tokens": 1200,
+    "interpret_before_generate": true,
+    "analyze_after_generate": true,
+    "max_retries_per_task": 2,
+    "require_vision": true
+  },
+  "workflow_overrides": [
+    {
+      "match": {
+        "title_contains": "Keyframed CFG"
+      },
+      "widgets": {
+        "0": "0.0:5.5,0.5:6.0,1.0:6.5"
+      }
+    },
+    {
+      "match": {
+        "title_contains": "Keyframed Denoise"
+      },
+      "widgets": {
+        "0": "0.0:1.0,1.0:0.9"
+      }
+    }
+  ]
+}
